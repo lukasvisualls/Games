@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tetris</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="sound-controls">
+    <button id="toggle-music" class="icon-btn" aria-label="Música">🎵</button>
+    <button id="toggle-sfx" class="icon-btn" aria-label="Efeitos sonoros">🔊</button>
+  </div>
+
+  <div class="game-container">
+    <div class="board-wrapper">
+      <canvas id="board" width="300" height="600"></canvas>
+
+      <div id="start-screen" class="overlay">
+        <h1 class="tetris-logo">TETRIS</h1>
+
+        <div class="difficulty-menu">
+          <button class="diff-btn" data-difficulty="facil">
+            <span class="diff-label">Fácil</span>
+            <span class="diff-record" data-difficulty="facil">Recorde: 0</span>
+          </button>
+          <button class="diff-btn selected" data-difficulty="medio">
+            <span class="diff-label">Médio</span>
+            <span class="diff-record" data-difficulty="medio">Recorde: 0</span>
+          </button>
+          <button class="diff-btn" data-difficulty="dificil">
+            <span class="diff-label">Difícil</span>
+            <span class="diff-record" data-difficulty="dificil">Recorde: 0</span>
+          </button>
+          <button class="diff-btn" data-difficulty="impossivel">
+            <span class="diff-label">Impossível</span>
+            <span class="diff-record" data-difficulty="impossivel">Recorde: 0</span>
+          </button>
+        </div>
+
+        <button id="play-btn" class="play-btn">Jogar</button>
+
+        <div class="controls-info controls-pc">
+          <h3>Controles (PC)</h3>
+          <p>A / D mover · Z girar</p>
+          <p>S descida suave · Espaço drop</p>
+        </div>
+
+        <div class="controls-info controls-mobile">
+          <h3>Controles (Mobile)</h3>
+          <p>Toque para girar · arraste para mover/descer</p>
+          <p>Ou use os botões abaixo do tabuleiro</p>
+        </div>
+
+        <div class="audio-settings">
+          <h3>Áudio</h3>
+          <label class="toggle-row">
+            <span>Música</span>
+            <input type="checkbox" id="setting-music" checked />
+          </label>
+          <label class="toggle-row">
+            <span>Efeitos</span>
+            <input type="checkbox" id="setting-sfx" checked />
+          </label>
+          <label class="toggle-row volume-row">
+            <span>Volume</span>
+            <input type="range" id="setting-volume" min="0" max="100" value="70" />
+          </label>
+        </div>
+
+        <p class="hint-text">Setas para escolher e <span class="key">Enter</span> para jogar</p>
+      </div>
+
+      <div id="game-over-screen" class="overlay hidden">
+        <h1>GAME OVER</h1>
+        <p>Score: <span id="final-score">0</span></p>
+        <p>Recorde do modo: <span id="best-score">0</span></p>
+        <button id="menu-btn" class="play-btn">Voltar ao Menu</button>
+        <p>ou pressione <span class="key">Enter</span></p>
+      </div>
+    </div>
+
+    <h1 class="mobile-logo">TETRIS</h1>
+
+    <div class="side-panel">
+      <h1 class="logo">TETRIS</h1>
+
+      <div class="stats-row">
+        <div class="panel-box stat-box">
+          <h2>Score</h2>
+          <p id="score">0</p>
+        </div>
+
+        <div class="panel-box stat-box">
+          <h2>Nível</h2>
+          <p id="level">1</p>
+        </div>
+
+        <div class="panel-box stat-box">
+          <h2>Linhas</h2>
+          <p id="lines">0</p>
+        </div>
+      </div>
+
+      <div class="panel-box next-box" id="next-box">
+        <h2>Próxima</h2>
+        <canvas id="next-piece" width="120" height="120"></canvas>
+      </div>
+
+      <div class="panel-box controls">
+        <h2>Controles</h2>
+        <p>A / D mover</p>
+        <p>↑ / Z girar</p>
+        <p>S descida suave</p>
+        <p>Espaço drop</p>
+      </div>
+    </div>
+
+    <div id="touch-controls" class="touch-controls">
+      <button id="btn-left" class="touch-btn" aria-label="Mover esquerda">⬅</button>
+      <button id="btn-rotate" class="touch-btn" aria-label="Girar">⟳</button>
+      <button id="btn-right" class="touch-btn" aria-label="Mover direita">➡</button>
+      <button id="btn-down" class="touch-btn" aria-label="Descida suave">⬇</button>
+      <button id="btn-drop" class="touch-btn touch-btn-drop" aria-label="Drop instantâneo">⤓</button>
+    </div>
+  </div>
+
+  <script src="jarvis-progress.js" data-game="tetris"></script>
+  <script type="module">await JarvisGameProgress.load(['js/piece.js','js/board.js','js/audio.js','js/game.js']);</script>
+</body>
+</html>

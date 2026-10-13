@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "games": {
+    "battle-royale": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/battle-royale.zip",
+      "sha256": "752b6233c40e99eeee639bb69d3cd614bde1640692ce201a48b997c9928f3b73",
+      "size": 200012
+    },
+    "tetris": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/tetris.zip",
+      "sha256": "e3c49a50fa1db21ebffbd4d96326cc53feada2988053dbac77f8341b7840d7a2",
+      "size": 16029
+    },
+    "flappy-bird": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/flappy-bird.zip",
+      "sha256": "026a225f40f4f503af2d56a32ba6534883995765527294ea4bcb5f61f7efef97",
+      "size": 17611
+    },
+    "agario": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/agario.zip",
+      "sha256": "c2f5edcbd483768a967f2d045b59e13c99868713c2612d082f2e169696e34e8d",
+      "size": 14343
+    },
+    "minecraft": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/minecraft.zip",
+      "sha256": "d23beb29a07749a604c188251b4ab72c39ee4c1230457a9c52d1e69f6bb70696",
+      "size": 322647
+    },
+    "nitro-rush": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/nitro-rush.zip",
+      "sha256": "77106ca2519edc6de8c919e280b5b6d1569579b59cf65c5f779f2ce5bb377a39",
+      "size": 565968
+    },
+    "neon-breaker": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/neon-breaker.zip",
+      "sha256": "ee1ab4009628832429c8d53ef332fb0b830a888786ae918dbe4275fb513f0577",
+      "size": 11491
+    },
+    "vice-city-web": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/vice-city-web.zip",
+      "sha256": "f702db9061ce4fb16d4a1e4ea5ae35c7f671a44e6930f9cc3e8c9edade6c6535",
+      "size": 23164
+    },
+    "rhythia": {
+      "version": "1.0.0",
+      "kind": "native",
+      "entry": "Rhythia.exe",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/rhythia.zip",
+      "sha256": "3563b21844bed66e9c01cc86f993785609ac2ce86c985247437f5737f538373b",
+      "size": 83988857
+    }
+  }
+}

@@ -1,0 +1,450 @@
+/* style.css — HUD, menu inicial e inventário */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0d1117;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  user-select: none;
+  color: #fff;
+}
+
+#game { display: block; }
+
+/* ---------- MENU INICIAL ---------- */
+#menu {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(138, 77, 219, 0.35), transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(58, 110, 208, 0.35), transparent 60%),
+    linear-gradient(#101a2a, #0a0e16);
+}
+#menu.hidden { display: none; }
+#menu h1 {
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+#menu h1 span { color: #ffd94a; }
+#menu .subtitle { opacity: 0.7; margin-top: -8px; }
+#playBtn {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 14px 60px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #12300f;
+  background: linear-gradient(#aef77c, #4fc23a);
+  box-shadow: 0 6px 20px rgba(80, 200, 60, 0.4);
+  transition: transform 0.1s;
+}
+#playBtn:hover { transform: scale(1.05); }
+
+#menuPanels {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 900px;
+}
+.panel {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px 20px;
+  width: 380px;
+}
+.panel h3 { margin-bottom: 10px; font-size: 16px; }
+.panel .fixed { font-size: 12px; opacity: 0.7; margin-top: 10px; line-height: 1.5; }
+
+.bindRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 14px;
+}
+.bindBtn {
+  min-width: 140px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffd94a;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bindBtn:hover { background: rgba(255, 255, 255, 0.18); }
+
+.volRow { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; }
+.volRow input[type='range'] { flex: 1; accent-color: #ffd94a; }
+
+/* ---------- HUD ---------- */
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* mira: ponto sempre; com arma (.gun) muda o formato por TIPO de arma */
+#crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  --len: 7px;   /* comprimento dos tracinhos */
+  --th: 1.5px;  /* espessura */
+}
+#crosshair .dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  transform: translate(-50%, -50%);
+  background: #aef77c;
+  border-radius: 50%;
+  box-shadow: 0 0 3px #000;
+}
+#crosshair .ch {
+  position: absolute;
+  background: #fff;
+  box-shadow: 0 0 3px #000;
+  display: none;
+}
+#crosshair .circ {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 3px #000, inset 0 0 3px #000;
+  display: none;
+}
+#crosshair.gun .ch { display: block; }
+#crosshair.gun .dot { background: #fff; }
+#crosshair .ch.t { left: 50%; top: 0; width: var(--th); height: var(--len); transform: translateX(-50%); }
+#crosshair .ch.b { left: 50%; bottom: 0; width: var(--th); height: var(--len); transform: translateX(-50%); }
+#crosshair .ch.l { top: 50%; left: 0; height: var(--th); width: var(--len); transform: translateY(-50%); }
+#crosshair .ch.r { top: 50%; right: 0; height: var(--th); width: var(--len); transform: translateY(-50%); }
+
+/* formatos por arma */
+#crosshair.ch-pistola  { width: 26px; height: 26px; }
+#crosshair.ch-revolver { width: 30px; height: 30px; --len: 8px; --th: 2px; }
+#crosshair.ch-fuzil    { width: 20px; height: 20px; --len: 6px; }
+#crosshair.ch-smg      { width: 36px; height: 36px; --len: 8px; --th: 2px; }
+#crosshair.ch-lmg      { width: 42px; height: 42px; --len: 9px; --th: 2.5px; }
+#crosshair.ch-sniper   { width: 44px; height: 44px; --len: 13px; --th: 1px; }
+#crosshair.ch-sniper .circ { display: block; }
+#crosshair.ch-escopeta { width: 48px; height: 48px; --len: 6px; --th: 2px; }
+#crosshair.ch-escopeta .circ { display: block; border-style: dashed; }
+
+#zoneStatus {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+}
+#zoneStatus.warn {
+  background: rgba(150, 30, 200, 0.8);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 50% { transform: translateX(-50%) scale(1.06); } }
+
+#playersBox {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+#minimap {
+  position: absolute;
+  top: 52px;
+  right: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+}
+
+#killfeed {
+  position: absolute;
+  top: 214px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+.kf {
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+#bottomLeft {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#healthRow { display: flex; align-items: center; gap: 8px; }
+#shieldRow { display: flex; align-items: center; gap: 8px; }
+#shieldBar {
+  width: 220px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  overflow: hidden;
+}
+#shieldFill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(#8ae0ff, #1a8fe0);
+  transition: width 0.15s;
+}
+#shieldText { font-weight: 800; font-size: 14px; text-shadow: 0 1px 3px #000; min-width: 34px; color: #8ae0ff; }
+#healthBar {
+  width: 220px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+}
+#healthFill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(#7cfc7c, #2ecc40);
+  transition: width 0.15s;
+}
+#healthFill.mid { background: linear-gradient(#ffe28a, #f0b429); }
+#healthFill.low { background: linear-gradient(#ff8a8a, #e02040); }
+#healthText { font-weight: 800; font-size: 16px; text-shadow: 0 1px 3px #000; min-width: 34px; }
+
+#matRow { display: flex; gap: 8px; }
+#matRow .mat {
+  background: rgba(0, 0, 0, 0.55);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+#hotbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.slot {
+  min-width: 108px;
+  padding: 7px 10px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid #666;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+.slot.active {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+.slot .rar { display: block; font-size: 11px; font-weight: 600; opacity: 0.9; }
+
+#healBar {
+  position: absolute;
+  bottom: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  overflow: hidden;
+}
+#healBar.hidden { display: none; }
+#healFill { height: 100%; width: 0; background: linear-gradient(#8af79c, #35c455); }
+
+#interactPrompt {
+  position: absolute;
+  bottom: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.65);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+#interactPrompt.hidden { display: none; }
+
+#airPrompt {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  animation: pulse2 1.2s infinite;
+}
+#airPrompt.hidden { display: none; }
+@keyframes pulse2 { 50% { transform: translateX(-50%) scale(1.05); } }
+
+#lockHint {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 16px;
+}
+#lockHint.hidden { display: none; }
+
+#controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  max-width: 300px;
+  font-size: 11px;
+  opacity: 0.6;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-align: right;
+}
+
+#vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 160px rgba(150, 30, 220, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#vignette.active { opacity: 1; }
+
+/* ---------- MAPA GRANDE (M) ---------- */
+#bigMap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(8, 14, 24, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+#bigMap.hidden { display: none; }
+#bigMap canvas { border-radius: 8px; display: block; }
+#bigMap p { font-size: 12px; opacity: 0.7; margin-top: 8px; }
+
+/* ---------- INVENTÁRIO ---------- */
+#inventory {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(8, 14, 24, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 20px 26px;
+  pointer-events: auto;
+  text-align: center;
+}
+#inventory.hidden { display: none; }
+#inventory h2 { margin-bottom: 14px; }
+#invSlots { display: flex; gap: 10px; margin-bottom: 14px; }
+.invCell {
+  width: 110px;
+  height: 80px;
+  border: 2px solid #666;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: grab;
+}
+.invCell.active { box-shadow: 0 0 10px rgba(255, 255, 255, 0.35); }
+.invCell span { font-size: 11px; opacity: 0.85; }
+.invCell .invIcon { font-size: 22px; opacity: 1; }
+#inventory .tip { font-size: 12px; opacity: 0.6; margin-top: 10px; }
+#inventory .volRow { justify-content: center; }
+#inventory .volRow input { max-width: 200px; }
+
+/* ---------- OVERLAY VITÓRIA/DERROTA ---------- */
+#overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(5, 10, 20, 0.55);
+  backdrop-filter: blur(2px);
+  text-align: center;
+}
+#overlay.hidden { display: none; }
+#overlayTitle {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8);
+}
+#overlay.win #overlayTitle { color: #ffd94a; }
+#overlay.lose #overlayTitle { color: #ff5a6e; }
+#overlaySub { font-size: 18px; opacity: 0.9; }
+#menuBtn {
+  pointer-events: auto;
+  margin-top: 10px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+#menuBtn:hover { background: rgba(255, 255, 255, 0.22); }

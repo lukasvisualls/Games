@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle Royale 3D — Protótipo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="crosshair">
+      <span class="circ"></span>
+      <span class="ch t"></span><span class="ch b"></span>
+      <span class="ch l"></span><span class="ch r"></span>
+      <span class="dot"></span>
+    </div>
+
+    <div id="zoneStatus"></div>
+    <div id="playersBox">👥 <span id="playersCount">4</span> vivos</div>
+    <canvas id="minimap" width="150" height="150"></canvas>
+    <div id="killfeed"></div>
+
+    <div id="bottomLeft">
+      <div id="shieldRow">
+        <span class="hudLabel">🛡️</span>
+        <div id="shieldBar"><div id="shieldFill"></div></div>
+        <span id="shieldText">0</span>
+      </div>
+      <div id="healthRow">
+        <span class="hudLabel">❤️</span>
+        <div id="healthBar"><div id="healthFill"></div></div>
+        <span id="healthText">100</span>
+      </div>
+      <div id="matRow">
+        <span class="mat">🪵 <b id="matWood">0</b></span>
+        <span class="mat">🪨 <b id="matStone">0</b></span>
+        <span class="mat">⚙️ <b id="matMetal">0</b></span>
+      </div>
+    </div>
+
+    <!-- 5 slots -->
+    <div id="hotbar">
+      <div class="slot" id="slot0"></div>
+      <div class="slot" id="slot1"></div>
+      <div class="slot" id="slot2"></div>
+      <div class="slot" id="slot3"></div>
+      <div class="slot" id="slot4"></div>
+    </div>
+
+    <div id="healBar" class="hidden"><div id="healFill"></div></div>
+
+    <!-- mapa grande (tecla M) -->
+    <div id="bigMap" class="hidden">
+      <canvas id="bigMapCanvas" width="520" height="520"></canvas>
+      <p>🗺️ Safe atual em roxo · próxima em branco · M para fechar</p>
+    </div>
+    <div id="interactPrompt" class="hidden"></div>
+    <div id="airPrompt" class="hidden"></div>
+    <div id="lockHint" class="hidden">🖱️ Clique para capturar o mouse e jogar</div>
+
+    <div id="controls">
+      WASD mover · clique esquerdo atirar/picaretar · E pegar/abrir ·
+      TAB inventário · 1-5 slots · R reiniciar
+    </div>
+
+    <div id="vignette"></div>
+
+    <div id="overlay" class="hidden">
+      <h1 id="overlayTitle"></h1>
+      <p id="overlaySub"></p>
+      <button id="menuBtn">🏠 Voltar ao menu</button>
+    </div>
+
+    <!-- inventário (TAB): arraste para reordenar -->
+    <div id="inventory" class="hidden">
+      <h2>🎒 Inventário</h2>
+      <div id="invSlots"></div>
+      <div class="volRow">🔊 Volume <input type="range" id="volInv" min="0" max="100" value="70"></div>
+      <p class="tip">Arraste os itens para reordenar · TAB para fechar</p>
+    </div>
+  </div>
+
+  <!-- MENU INICIAL -->
+  <div id="menu">
+    <h1>BATTLE ROYALE <span>3D</span></h1>
+    <p class="subtitle">protótipo feito do zero com JavaScript</p>
+    <p class="subtitle" id="jarvisBattleStats">0 partidas · 0 vitórias</p>
+    <button id="playBtn">▶ JOGAR</button>
+
+    <div id="menuPanels">
+      <div class="panel">
+        <h3>⌨️ Controles configuráveis</h3>
+        <div id="bindList"></div>
+        <p class="fixed">
+          Fixos: <b>WASD</b> mover · <b>Clique esquerdo</b> atirar/picaretar ·
+          <b>E</b> interagir · <b>TAB</b> inventário · <b>1-5</b> slots
+        </p>
+      </div>
+      <div class="panel">
+        <h3>🔊 Som</h3>
+        <label class="volRow">Volume <input type="range" id="volMenu" min="0" max="100" value="70"></label>
+        <p class="fixed">Vento, pássaros, tiros e construção — todos os sons são gerados em tempo real no navegador.</p>
+        <h3 style="margin-top:14px">🎮 Como jogar</h3>
+        <p class="fixed">
+          Pule do ônibus, plane até a ilha, quebre árvores/pedras/carros com a picareta
+          para ganhar materiais, abra baús, monte seu arsenal e sobreviva à tempestade!
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js (renderização 3D) — o código do jogo é JS puro -->
+  <script src="jarvis-progress.js" data-game="battle-royale"></script>
+
+  <!-- Ordem importa: game.js integra tudo; menu.js liga os botões -->
+  <script type="module">
+    await JarvisGameProgress.load(['engine/three.min.js','audio.js','world.js','zone.js','weapons.js','build.js','player.js','bots.js','game.js','menu.js']);
+  </script>
+</body>
+</html>
