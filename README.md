@@ -10,11 +10,11 @@ Battle Royale, Tetris, Flappy Bird, Agar.io, Minecraft 3D, Nitro Rush 3D, Neon B
 
 ## Controles corrigidos
 
-- Battle Royale: WASD; Espaço para saltar do ônibus; mouse para olhar. Se a captura do mouse não estiver disponível, segure e arraste no jogo.
+- Battle Royale: WASD; Espaço para saltar do ônibus; mova o mouse para olhar livremente, sem segurar botão.
 - Tetris: A/D para mover, Z para girar, S para descer e Espaço para soltar.
 - Flappy Bird: Espaço ou clique para voar; música e efeitos originais com controle de som.
 - Agar.io: mouse para guiar; música ambiente original com controle de som.
-- Minecraft: WASD, Espaço para pular. Continuar restaura o mundo e Novo mundo reinicia após confirmação. Sem captura do mouse, segure e arraste para olhar.
+- Minecraft: WASD, Espaço para pular. Continuar restaura o mundo e Novo mundo reinicia após confirmação. Mova o mouse para olhar livremente, sem segurar botão.
 
 ## Dados pessoais
 

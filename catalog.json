@@ -2,12 +2,12 @@
   "version": 1,
   "games": {
     "battle-royale": {
-      "version": "1.0.0",
+      "version": "1.0.1",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/battle-royale.zip",
-      "sha256": "752b6233c40e99eeee639bb69d3cd614bde1640692ce201a48b997c9928f3b73",
-      "size": 200012
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/battle-royale.zip",
+      "sha256": "58d29a6586ab76f663063ea1a51558ab1db366a03b1e4eeb2fa95225d611c80a",
+      "size": 200005
     },
     "tetris": {
       "version": "1.0.0",
@@ -34,12 +34,12 @@
       "size": 14343
     },
     "minecraft": {
-      "version": "1.0.0",
+      "version": "1.0.1",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/minecraft.zip",
-      "sha256": "d23beb29a07749a604c188251b4ab72c39ee4c1230457a9c52d1e69f6bb70696",
-      "size": 322647
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/minecraft.zip",
+      "sha256": "3b77cec50c153dd3bd3156c567080bf853abc30851eaea4ed74bf15d1ca49a18",
+      "size": 322650
     },
     "nitro-rush": {
       "version": "1.0.0",

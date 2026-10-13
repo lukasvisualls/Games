@@ -157,7 +157,7 @@ window.addEventListener('auxclick', (e) => e.preventDefault());
 // mouse na MESMA direção da câmera (não invertido):
 // mouse p/ direita gira a câmera p/ direita
 document.addEventListener('mousemove', (e) => {
-  if (!game || invOpen || (document.pointerLockElement !== canvas && (!e.buttons || e.target !== canvas))) return;
+  if (!game || invOpen || (document.pointerLockElement !== canvas && e.target !== canvas)) return;
   game.camYaw -= e.movementX * 0.0026;
   game.camPitch = clamp(game.camPitch - e.movementY * 0.0026, -1.15, 1.3);
 });

@@ -4329,7 +4329,7 @@ document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 document.addEventListener('mousemove', e => {
   if (!locked()) return;
-  if (mouseFallback && document.pointerLockElement !== canvas && !e.buttons) return;
+  if (document.pointerLockElement !== canvas && e.target !== canvas) return;
   player.yaw -= e.movementX * 0.0024;
   player.pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, player.pitch - e.movementY * 0.0024));
 });
