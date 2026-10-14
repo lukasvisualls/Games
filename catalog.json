@@ -10,12 +10,12 @@
       "size": 200005
     },
     "tetris": {
-      "version": "1.0.0",
+      "version": "1.0.2",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/tetris.zip",
-      "sha256": "e3c49a50fa1db21ebffbd4d96326cc53feada2988053dbac77f8341b7840d7a2",
-      "size": 16029
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.2/tetris.zip",
+      "sha256": "29a8d1a12c52020d61de51324d718c19140f7115d9e818bfae03af7d9e7cf07d",
+      "size": 16026
     },
     "flappy-bird": {
       "version": "1.0.0",

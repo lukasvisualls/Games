@@ -1,3 +1,7 @@
+# 1.0.2
+
+Tetris: E gira as peças no lugar de Z, com a legenda atualizada. A/D, S, Espaço, sons e progresso foram preservados. Apenas o pacote Tetris foi atualizado nesta release.
+
 # 1.0.1
 
 Battle Royale e Minecraft: a câmera acompanha o movimento do mouse sem exigir botão de mirar ou atirar, inclusive no caminho alternativo sem captura. A correção da captura contínua no aplicativo Electron vem com JARVIS 2.1.115.

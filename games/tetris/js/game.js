@@ -421,7 +421,7 @@ document.addEventListener("keydown", (e) => {
 
   if (state !== STATE.PLAYING) return;
 
-  if (['KeyA','KeyD','KeyS','KeyZ','Space','ArrowLeft','ArrowRight','ArrowDown','ArrowUp'].includes(e.code)) e.preventDefault();
+  if (['KeyA','KeyD','KeyS','KeyE','Space','ArrowLeft','ArrowRight','ArrowDown','ArrowUp'].includes(e.code)) e.preventDefault();
   switch (e.code) {
     case "KeyA":
     case "ArrowLeft":
@@ -436,7 +436,7 @@ document.addEventListener("keydown", (e) => {
       softDrop();
       break;
     case "ArrowUp":
-    case "KeyZ":
+    case "KeyE":
       tryRotate();
       break;
     case "Space":
