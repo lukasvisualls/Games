@@ -8,7 +8,8 @@ $stage = Join-Path ([IO.Path]::GetTempPath()) ('jarvis-cs-' + [guid]::NewGuid().
 New-Item -ItemType Directory -Path $stage | Out-Null
 try {
  Copy-Item -LiteralPath $package.FullName -Destination (Join-Path $stage 'cs.zip')
- gh release view cs-1.6.0 --repo lukasvisualls/Games *> $null
+ $isDraft = gh release view cs-1.6.0 --repo lukasvisualls/Games --json isDraft --jq .isDraft
+ if ($LASTEXITCODE -eq 0 -and $isDraft -ne 'true') { throw 'O destino nao e rascunho. Nao sobrescrever uma release publicada.' }
  if ($LASTEXITCODE -ne 0) {
   gh release create cs-1.6.0 --repo lukasvisualls/Games --draft --prerelease --title 'CS 1.6 - candidato para JARVIS' --notes 'Pacote fornecido pelo usuario. Analise estatica e extracao concluidas; execucao em Windows pendente. Nao promover ao catalogo estavel antes da validacao.'
   if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel criar o rascunho.' }
