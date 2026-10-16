@@ -1,0 +1,21 @@
+{
+  "id": "cs",
+  "name": "CS",
+  "version": "1.6.1",
+  "kind": "native",
+  "entry": "CS 1.6/hl.exe",
+  "url": "https://github.com/lukasvisualls/Games/releases/download/cs-installer-1.6.1/cs-installer.zip",
+  "sha256": "d22fe0f49bca08f1bfe130804e8a155929f7ec1b02fbbc630b64dba3ef2f35ce",
+  "size": 278693197,
+  "installMode": "inno",
+  "installer": "Counter-Strike.exe",
+  "platform": "win32",
+  "status": "installer-windows-validation",
+  "arguments": [
+    "-game",
+    "cstrike",
+    "-steam",
+    "-windowed",
+    "-nojoy"
+  ]
+}
