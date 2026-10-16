@@ -12,4 +12,12 @@ O workflow `cs-windows-candidate.yml` baixa esse asset autenticado, confere hash
 
 **Limite:** o runner Windows tem seus próprios runtimes/drivers. Mesmo dois inícios aprovados não comprovam portabilidade completa, jogabilidade, saves, servidores, Steam/anti-cheat, escala ou incorporação da janela ao Jarvis. Não adicionar ao catálogo estável antes da validação técnica final.
 
+## Resultado Windows — 16/10/2026
+
+O teste real [38848801499](https://github.com/lukasvisualls/Games/actions/runs/38848801499) baixou, verificou e extraiu o ZIP, mas o primeiro início abriu **Fatal Error**: `Failed to initalize authentication interface. Exiting...`. O jogo não chegou à janela jogável. A segunda abertura não foi executada após esse erro.
+
+Assim, este pacote **não está aprovado como portátil**. A mensagem aponta uma falha de inicialização da autenticação; a dependência exata ainda não foi estabelecida. Arquivos e argumentos Steam foram preservados. É necessário identificar a distribuição/runtime de autenticação compatível e autorizado antes de prosseguir. Não houve alteração de binários nem tentativa de contornar autenticação.
+
+`cs-windows-result.json` e `cs-windows-1.png` foram guardados junto de `cs.zip` no rascunho `cs-1.6.0`. O catálogo estável permanece inalterado.
+
 O preparo em `prepare-release.ps1` cria somente rascunho. Nenhum desses scripts altera o catálogo ou publica a distribuição dos jogos existentes.
