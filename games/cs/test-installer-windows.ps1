@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputPath
 )
 $ErrorActionPreference = 'Stop'
-$manifest = Get-Content (Join-Path $PSScriptRoot 'installer.json') -Raw | ConvertFrom-Json
+$manifest = Get-Content (Join-Path $PSScriptRoot 'package.json') -Raw | ConvertFrom-Json
+$launchArguments = @($manifest.arguments) + @('-soft', '-w', '800', '-h', '600')
 $zip = Get-Item $ZipPath
 if ($zip.Length -ne $manifest.size) { throw 'Tamanho inesperado do pacote.' }
 if ((Get-FileHash $zip.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $manifest.sha256) { throw 'SHA-256 inesperado do pacote.' }
@@ -53,7 +54,7 @@ $runs = @()
 try {
     for ($attempt = 1; $attempt -le 2; $attempt++) {
         $process = $null
-        $result = [ordered]@{ attempt = $attempt; executableRelative = $manifest.entry; arguments = @($manifest.arguments); exited = $false; exitCode = $null; title = ''; messages = @(); responding = $false; gameWindow = $false; error = $null }
+        $result = [ordered]@{ attempt = $attempt; executableRelative = $manifest.entry; arguments = @($launchArguments); exited = $false; exitCode = $null; title = ''; messages = @(); responding = $false; gameWindow = $false; error = $null }
         try {
             $process = Start-Process -FilePath $executable -WorkingDirectory (Split-Path $executable) -ArgumentList $manifest.arguments -PassThru
             $seen = [System.Collections.Generic.HashSet[string]]::new()

@@ -1,8 +1,6 @@
 name: CS - instalador original no Windows
 on:
-  push:
-    branches: [feature/cs-installer-133]
-    paths: ['games/cs/**', '.github/workflows/cs-installer-candidate.yml']
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
