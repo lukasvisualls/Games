@@ -1,0 +1,35 @@
+name: CS - instalador original no Windows
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obter instalador candidato
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $draft = gh release view cs-installer-1.6.1 --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw 'O candidato deve estar em rascunho.' }
+          gh release download cs-installer-1.6.1 --pattern cs-installer.zip --dir $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao obter instalador.' }
+      - name: Instalar uma vez e iniciar duas vezes
+        shell: pwsh
+        run: ./games/cs/test-installer-windows.ps1 -ZipPath "$env:RUNNER_TEMP/cs-installer.zip" -OutputPath "$env:RUNNER_TEMP/cs-installer-result"
+      - name: Guardar resultado no rascunho
+        if: always()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $draft = gh release view cs-installer-1.6.1 --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw 'Nao sobrescrever pacote publicado.' }
+          foreach ($file in @(Get-ChildItem "$env:RUNNER_TEMP/cs-installer-result" -File -ErrorAction SilentlyContinue)) {
+            gh release upload cs-installer-1.6.1 $file.FullName --clobber
+            if ($LASTEXITCODE -ne 0) { throw 'Falha ao guardar resultado.' }
+          }

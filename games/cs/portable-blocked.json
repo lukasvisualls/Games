@@ -1,0 +1,19 @@
+{
+  "id": "cs",
+  "name": "CS",
+  "version": "1.6.0",
+  "kind": "native",
+  "entry": "CS 1.6/hl.exe",
+  "url": "https://github.com/lukasvisualls/Games/releases/download/cs-1.6.0/cs.zip",
+  "sha256": "73c0636452fcb610750268ed9a27fbe44076da6ce04b528fd3f29fb7b14089f4",
+  "size": 382265674,
+  "status": "blocked-authentication-windows",
+  "platform": "win32",
+  "arguments": [
+    "-game",
+    "cstrike",
+    "-steam",
+    "-windowed",
+    "-nojoy"
+  ]
+}
