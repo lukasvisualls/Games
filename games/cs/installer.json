@@ -16,6 +16,11 @@
     "cstrike",
     "-steam",
     "-windowed",
-    "-nojoy"
+    "-nojoy",
+    "-soft",
+    "-w",
+    "800",
+    "-h",
+    "600"
   ]
 }
