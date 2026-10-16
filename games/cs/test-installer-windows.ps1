@@ -61,9 +61,18 @@ try {
                 Start-Sleep -Milliseconds 500
                 $process.Refresh()
                 foreach ($text in [CSWindows]::Messages($process.Id)) { [void]$seen.Add($text) }
-                if ($process.HasExited) { break }
+                if ($process.HasExited) {
+                    # Some GoldSrc builds restart hl.exe when changing video mode. Follow only the same installed binary.
+                    $replacement = $null
+                    for ($retry = 0; $retry -lt 10; $retry++) {
+                        $replacement = Get-Process -Name hl -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $process.Id -and $_.Path -eq $executable } | Select-Object -First 1
+                        if ($replacement) { break }; Start-Sleep -Milliseconds 500
+                    }
+                    if ($replacement) { $process.Dispose(); $process = $replacement } else { break }
+                }
             }
             $process.Refresh()
+            $result.processes = @(Get-Process -Name hl -ErrorAction SilentlyContinue | Select-Object Id,Path,MainWindowTitle)
             $result.exited = $process.HasExited
             $result.messages = @($seen)
             if ($process.HasExited) { $result.exitCode = $process.ExitCode }
