@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputPath
 )
 $ErrorActionPreference = 'Stop'
-$manifest = Get-Content (Join-Path $PSScriptRoot 'portable-blocked.json') -Raw | ConvertFrom-Json
+$manifest = Get-Content (Join-Path $PSScriptRoot 'package.json') -Raw | ConvertFrom-Json
 $zip = Get-Item $ZipPath
 if ($zip.Length -ne $manifest.size) { throw 'Tamanho inesperado do pacote.' }
 if ((Get-FileHash $zip.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $manifest.sha256) { throw 'SHA-256 inesperado do pacote.' }
