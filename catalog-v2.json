@@ -1,0 +1,79 @@
+{
+  "version": 2,
+  "games": {
+    "battle-royale": {
+      "version": "1.0.1",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/battle-royale.zip",
+      "sha256": "58d29a6586ab76f663063ea1a51558ab1db366a03b1e4eeb2fa95225d611c80a",
+      "size": 200005
+    },
+    "tetris": {
+      "version": "1.0.2",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.2/tetris.zip",
+      "sha256": "29a8d1a12c52020d61de51324d718c19140f7115d9e818bfae03af7d9e7cf07d",
+      "size": 16026
+    },
+    "flappy-bird": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/flappy-bird.zip",
+      "sha256": "026a225f40f4f503af2d56a32ba6534883995765527294ea4bcb5f61f7efef97",
+      "size": 17611
+    },
+    "agario": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/agario.zip",
+      "sha256": "c2f5edcbd483768a967f2d045b59e13c99868713c2612d082f2e169696e34e8d",
+      "size": 14343
+    },
+    "minecraft": {
+      "version": "1.0.1",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/minecraft.zip",
+      "sha256": "3b77cec50c153dd3bd3156c567080bf853abc30851eaea4ed74bf15d1ca49a18",
+      "size": 322650
+    },
+    "nitro-rush": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/nitro-rush.zip",
+      "sha256": "77106ca2519edc6de8c919e280b5b6d1569579b59cf65c5f779f2ce5bb377a39",
+      "size": 565968
+    },
+    "neon-breaker": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/neon-breaker.zip",
+      "sha256": "ee1ab4009628832429c8d53ef332fb0b830a888786ae918dbe4275fb513f0577",
+      "size": 11491
+    },
+    "rhythia": {
+      "version": "1.0.0",
+      "kind": "native",
+      "entry": "Rhythia.exe",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/rhythia.zip",
+      "sha256": "3563b21844bed66e9c01cc86f993785609ac2ce86c985247437f5737f538373b",
+      "size": 83988857
+    },
+    "cs": {
+      "version": "1.6.0",
+      "kind": "native",
+      "entry": "CS 1.6/hl.exe",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/cs-1.6.0/cs.zip",
+      "sha256": "73c0636452fcb610750268ed9a27fbe44076da6ce04b528fd3f29fb7b14089f4",
+      "size": 382265674,
+      "disabled": true,
+      "disabledReason": "CS indisponível: falha na autenticação do jogo no teste Windows. Em validação."
+    }
+  }
+}

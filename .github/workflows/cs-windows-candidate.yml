@@ -1,0 +1,39 @@
+name: CS - abertura candidata no Windows
+on:
+  push:
+    branches: [feature/cs-portable-candidate]
+    paths: ['games/cs/**', '.github/workflows/cs-windows-candidate.yml']
+permissions:
+  contents: write
+jobs:
+  windows-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar somente o pacote candidato
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $release = gh release view cs-1.6.0 --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $release -ne 'true') { throw 'O pacote precisa continuar em rascunho.' }
+          gh release download cs-1.6.0 --repo $env:GITHUB_REPOSITORY --pattern cs.zip --dir $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao obter cs.zip.' }
+      - name: Conferir e tentar dois inicios sem instalar runtimes
+        shell: pwsh
+        run: ./games/cs/test-windows.ps1 -ZipPath "$env:RUNNER_TEMP/cs.zip" -OutputPath "$env:RUNNER_TEMP/cs-result"
+      - name: Guardar diagnostico no mesmo rascunho
+        if: always()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = @(Get-ChildItem "$env:RUNNER_TEMP/cs-result" -File -ErrorAction SilentlyContinue)
+          if (-not $files.Count) { exit 0 }
+          $release = gh release view cs-1.6.0 --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $release -ne 'true') { throw 'Nao sobrescrever uma release publicada.' }
+          foreach ($file in $files) {
+            gh release upload cs-1.6.0 $file.FullName --repo $env:GITHUB_REPOSITORY --clobber
+            if ($LASTEXITCODE -ne 0) { throw 'Falha ao guardar diagnostico.' }
+          }
