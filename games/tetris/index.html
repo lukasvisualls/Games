@@ -85,6 +85,14 @@
     <div class="side-panel">
       <h1 class="logo">TETRIS</h1>
 
+      <div id="multiplayer-status" class="panel-box hidden" aria-live="polite">
+        <h2>Duelo online</h2>
+        <p id="opponent-name">Aguardando amigo…</p>
+        <p>Score: <strong id="opponent-score">0</strong></p>
+        <p>Linhas: <strong id="opponent-lines">0</strong></p>
+        <p id="opponent-state">Conectando…</p>
+      </div>
+
       <div class="stats-row">
         <div class="panel-box stat-box">
           <h2>Score</h2>
@@ -129,3 +137,4 @@
   <script type="module">await JarvisGameProgress.load(['js/piece.js','js/board.js','js/audio.js','js/game.js']);</script>
 </body>
 </html>
+
