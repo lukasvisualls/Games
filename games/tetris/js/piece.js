@@ -71,7 +71,8 @@ function createPiece(type) {
 }
 
 function randomPiece() {
-  const type = PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)];
+  const random = typeof window.JarvisTetrisRandom === "function" ? window.JarvisTetrisRandom : Math.random;
+  const type = PIECE_TYPES[Math.floor(random() * PIECE_TYPES.length)];
   return createPiece(type);
 }
 
@@ -86,3 +87,4 @@ function rotateMatrix(matrix) {
   }
   return result;
 }
+

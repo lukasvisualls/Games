@@ -10,12 +10,13 @@
       "size": 200005
     },
     "tetris": {
-      "version": "1.0.2",
+      "version": "1.1.0",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.2/tetris.zip",
-      "sha256": "29a8d1a12c52020d61de51324d718c19140f7115d9e818bfae03af7d9e7cf07d",
-      "size": 16026
+      "url": "https://github.com/lukasvisualls/Games/releases/download/tetris-1.1.0/tetris.zip",
+      "sha256": "6f0576e613dc8f0f7b99466e9f4945868fec1fc14741d51a2f23ce8e2a26e28e",
+      "size": 17260,
+      "multiplayer": "realtime"
     },
     "flappy-bird": {
       "version": "1.0.0",
@@ -67,13 +68,20 @@
     },
     "cs": {
       "version": "1.6.0",
-      "kind": "native",
-      "entry": "CS 1.6/hl.exe",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/cs-1.6.0/cs.zip",
-      "sha256": "73c0636452fcb610750268ed9a27fbe44076da6ce04b528fd3f29fb7b14089f4",
-      "size": 382265674,
+      "kind": "native-installer",
+      "displayName": "Counter-Strike 1.6",
+      "installerUrl": "https://github.com/lukasvisualls/Games/releases/download/cs-installer-1.6.0/Counter-Strike.exe",
+      "installerSha256": "0b2c919f8fe3d145dbe4258d91b7436de70134b2abb8b200911be7fddf6198e6",
+      "installerSize": 279164882,
+      "installedEntry": "hl.exe",
+      "installLocations": [
+        "%ProgramFiles(x86)%/Counter-Strike 1.6/hl.exe",
+        "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
+        "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
+      ],
       "disabled": true,
-      "disabledReason": "CS indisponível: falha na autenticação do jogo no teste Windows. Em validação."
+      "disabledReason": "Aguardando confirmação de direito de redistribuição do instalador anexado."
     }
   }
 }
+
