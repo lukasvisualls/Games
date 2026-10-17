@@ -1,5 +1,20 @@
 let CELL = 30;
 
+const multiplayerParams = new URLSearchParams(location.search);
+const multiplayerRoom = multiplayerParams.get("room") || "";
+const multiplayerPlayer = multiplayerParams.get("player") || "";
+if (multiplayerRoom) {
+  let seed = 2166136261;
+  for (const char of multiplayerRoom) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
+  window.JarvisTetrisRandom = () => {
+    seed += 0x6D2B79F5;
+    let value = seed;
+    value = Math.imul(value ^ value >>> 15, value | 1);
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+}
+
 const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
 
@@ -15,6 +30,32 @@ const bestScoreEl = document.getElementById("best-score");
 const scoreEl = document.getElementById("score");
 const levelEl = document.getElementById("level");
 const linesEl = document.getElementById("lines");
+const multiplayerStatus = document.getElementById("multiplayer-status");
+const opponentName = document.getElementById("opponent-name");
+const opponentScore = document.getElementById("opponent-score");
+const opponentLines = document.getElementById("opponent-lines");
+const opponentState = document.getElementById("opponent-state");
+let lastMultiplayerPublish = 0;
+
+function publishMultiplayerState(force = false) {
+  if (!multiplayerRoom) return;
+  const now = Date.now();
+  if (!force && now - lastMultiplayerPublish < 120) return;
+  lastMultiplayerPublish = now;
+  window.parent.postMessage({ type: "jarvis-game-state", roomId: multiplayerRoom, player: multiplayerPlayer, state: { score, lines, level, phase: state } }, location.origin);
+}
+
+if (multiplayerRoom) {
+  multiplayerStatus.classList.remove("hidden");
+  window.addEventListener("message", (event) => {
+    if (event.origin !== location.origin || event.data?.type !== "jarvis-game-remote-state") return;
+    const remote = event.data.payload;
+    opponentName.textContent = remote?.name || "Amigo";
+    opponentScore.textContent = String(remote?.state?.score || 0);
+    opponentLines.textContent = String(remote?.state?.lines || 0);
+    opponentState.textContent = remote?.state?.phase === "gameover" ? "Fim de jogo" : remote?.state?.phase === "playing" ? "Jogando" : "Preparando";
+  });
+}
 
 const LINE_SCORES = { 1: 100, 2: 300, 3: 500, 4: 800 };
 const LINES_PER_LEVEL = 10;
@@ -181,6 +222,7 @@ function startGame() {
   startScreen.classList.add("hidden");
   gameOverScreen.classList.add("hidden");
   if (musicEnabledState) AudioEngine.startMusic();
+  publishMultiplayerState(true);
 }
 
 function goToMenu() {
@@ -199,12 +241,14 @@ function endGame() {
   gameOverScreen.classList.remove("hidden");
   AudioEngine.stopMusic();
   AudioEngine.playGameOver();
+  publishMultiplayerState(true);
 }
 
 function updateHUD() {
   scoreEl.textContent = score;
   levelEl.textContent = level;
   linesEl.textContent = lines;
+  publishMultiplayerState();
 }
 
 function computeScoreGain(clearedCount) {
@@ -600,3 +644,4 @@ window.addEventListener("resize", resizeCanvases);
 
 resizeCanvases();
 requestAnimationFrame(update);
+
