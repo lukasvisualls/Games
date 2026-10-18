@@ -94,8 +94,35 @@
         "%ProgramFiles%/Counter-Strike 1.6/unins000.exe",
         "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/unins000.exe"
       ],
+      "multiplayer": "invite",
+      "disabled": false
+    },
+    "tux-kart": {
+      "version": "1.5.0",
+      "kind": "native-installer",
+      "displayName": "Super Tux Kart",
+      "installerUrl": "https://github.com/supertuxkart/stk-code/releases/download/1.5/SuperTuxKart-1.5-installer-x86_64.exe",
+      "installerSha256": "a1260ebb73dd9da13ec3e37f526f29e494b3b66c00c05fd70767b30a4497d95e",
+      "installerSize": 723247478,
+      "installedEntry": "supertuxkart.exe",
+      "installLocations": [
+        "%ProgramFiles%/SuperTuxKart 1.5/supertuxkart.exe",
+        "%ProgramFiles%/SuperTuxKart-1.5/supertuxkart.exe",
+        "%ProgramFiles%/SuperTuxKart/supertuxkart.exe",
+        "%ProgramFiles(x86)%/SuperTuxKart 1.5/supertuxkart.exe",
+        "%LOCALAPPDATA%/Programs/SuperTuxKart/supertuxkart.exe"
+      ],
+      "uninstallLocations": [
+        "%ProgramFiles%/SuperTuxKart 1.5/unins000.exe",
+        "%ProgramFiles%/SuperTuxKart-1.5/unins000.exe",
+        "%ProgramFiles%/SuperTuxKart/unins000.exe",
+        "%ProgramFiles(x86)%/SuperTuxKart 1.5/unins000.exe",
+        "%LOCALAPPDATA%/Programs/SuperTuxKart/unins000.exe"
+      ],
+      "multiplayer": "invite",
       "disabled": false
     }
   }
 }
+
 
