@@ -1,7 +1,7 @@
 {
   "version": 2,
   "games": {
-    "battle-royale": {
+    "battle-royale": {Z
       "version": "1.0.1",
       "kind": "web",
       "entry": "index.html",
@@ -70,7 +70,7 @@
       "version": "1.6.0",
       "kind": "native-installer",
       "displayName": "Counter-Strike 1.6",
-      "installerUrl": "https://github.com/lukasvisualls/Games/releases/download/cs-installer-1.6.0/Counter-Strike.exe",
+      "installerUrl": "https://github.com/lukasvisualls/Games/releases/download/cs-1.6.0/Counter-Strike.exe",
       "installerSha256": "0b2c919f8fe3d145dbe4258d91b7436de70134b2abb8b200911be7fddf6198e6",
       "installerSize": 279164882,
       "installedEntry": "hl.exe",
@@ -79,8 +79,7 @@
         "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
         "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
       ],
-      "disabled": true,
-      "disabledReason": "Aguardando confirmação de direito de redistribuição do instalador anexado."
+      "disabled": false
     }
   }
 }
