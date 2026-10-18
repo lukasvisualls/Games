@@ -255,7 +255,7 @@
 <script src="src/jarvis-save.js"></script>
 <script type="module">
 // Restaura o progresso antes de construir a economia e carregar o jogo local.
-const SCRIPTS = ['src/Engine.js', 'src/PhysicsEngine.js', 'src/Vehicles.js', 'src/TrackManager.js', 'src/App.js'];
+const SCRIPTS = ['src/Engine.js', 'src/PhysicsEngine.js', 'src/Vehicles.js', 'src/TrackManager.js', 'src/App.js', 'src/jarvis-multiplayer.js'];
 const load = (src) => new Promise((ok, fail) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => fail(new Error('não foi possível carregar ' + src)); document.head.appendChild(s); });
 try {
   await window.JarvisNitroSave.init();
