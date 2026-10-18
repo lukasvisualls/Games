@@ -1,5 +1,12 @@
 # Novos jogos do JARVIS — 2.1.113
 
+## Conferência de origem em 18/10/2026
+
+- Minecraft: vitormenoli/Minecraft, master 81e2e86190bfa9151f18d0ed23f1d0473cc4a051.
+- Battle Royale: vitormenoli/Fortnite, master 62fd449d28ccd17083cd11b43d4b9d764fd9d80b.
+- As fontes já correspondiam à lógica destas revisões. Diferenças locais preservadas: Three.js local, ponte de progresso, mundo salvo, estatísticas e controles de mouse. Não foi inventada uma nova versão de jogo sem mudanças do original.
+- Counter-Strike preservado em disco, mas desativado como “Em breve”. Super Tux Kart retirado dos pacotes executáveis e do catálogo de instalação; sua capa permanece no aplicativo como “Em breve”. Sem remoção de releases antigas ou reescrita do histórico Git.
+
 Integrações locais dos projetos de Vitor Menoli:
 
 - Battle Royale: https://github.com/vitormenoli/Fortnite

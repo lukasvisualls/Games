@@ -440,8 +440,8 @@ class Race {
     this.physics = new PhysicsEngine(T);
     this.cars = []; this.ais = [];
     const selId = E.data.selected;
-    const P = (this.player = new Vehicle(this, { model: selId, color: E.color(selId), stats: E.stats(selId), isPlayer: true, name: 'VOCÊ', headlights: env.night, shadows: q.shadows }));
-    if (!this.trial) {
+    const P = (this.player = new Vehicle(this, { model: selId, color: E.color(selId), stats: game.multiplayer ? computeStats(selId) : E.stats(selId), isPlayer: true, name: game.multiplayer?.name || 'VOCÊ', headlights: env.night, shadows: q.shadows }));
+    if (!this.trial && !game.multiplayer) {
       const rnd = mulberry32((Date.now() & 0xffff) + 7), names = AI_NAMES.slice().sort(() => rnd() - 0.5);
       const cls = CARS[selId].cls, pool = CAR_LIST.filter((id) => CARS[id].cls === cls);
       for (let k = 0; k < NUM_AI; k++) {
@@ -454,7 +454,12 @@ class Race {
         this.cars.push(car); this.ais.push(new AICar(car, this, skill));
       }
     }
-    this.cars.push(P); mark('carros');
+    if (game.multiplayer) {
+      const remote = game.multiplayer.remote;
+      this.remotePlayer = new Vehicle(this, {model:remote.model,color:remote.color,stats:computeStats(remote.model),name:remote.name,headlights:env.night,shadows:q.aiShadows});
+      if(game.multiplayer.role==='host')this.cars.push(P,this.remotePlayer);else this.cars.push(this.remotePlayer,P);
+    } else this.cars.push(P);
+    mark('carros');
     // faróis/lanternas com luz real: o jogador sempre; à noite/chuva/neve também as IAs mais próximas (pool fixo)
     const nRig = 1 + (env.night ? Math.max(0, (q.lights || 1) - 1) : 0);   // mesma contagem de luzes em todas as pistas diurnas → shaders reaproveitados
     this.rigs = []; for (let k = 0; k < nRig; k++) this.rigs.push(new LightRig(this.scene));
@@ -1218,7 +1223,7 @@ class InterfaceManager {
       $('res-title').textContent = `${r.track.toUpperCase()} · ${r.diff.toUpperCase()}`;
       pe.textContent = `${r.pos}º LUGAR`; pe.className = 'res-pos' + (r.pos === 1 ? ' p1' : ''); pe.style.fontSize = '';
       $('res-k1').firstChild.textContent = 'TEMPO TOTAL'; $('res-time').textContent = fmtTime(r.totalTime);
-      $('res-standings').innerHTML = r.standings.map((s) => `<tr class="${s.me ? 'me' : ''}"><td>${s.pos}º</td><td><span class="dot" style="background:${s.color}"></span>${s.name} <small style="color:var(--muted)">${s.model}</small></td><td>${s.time}</td></tr>`).join('');
+      $('res-standings').innerHTML = r.standings.map((s) => `<tr class="${s.me ? 'me' : ''}"><td>${s.pos}º</td><td><span class="dot" style="background:${s.color}"></span>${String(s.name).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))} <small style="color:var(--muted)">${s.model}</small></td><td>${s.time}</td></tr>`).join('');
       const rows = [['Moedas coletadas na pista', `+${r.raceCoins}`], [`Prêmio pela posição (${r.pos}º)`, `+${r.posCoins}`], [`Bônus de score (${r.score.toLocaleString('pt-BR')} pts)`, `+${r.scoreCoins}`], ['Multiplicador de dificuldade', `x${r.mult}`]];
       $('res-rewards').innerHTML = rows.map(([a, b]) => `<div class="rw"><span>${a}</span><b>${b}</b></div>`).join('') +
         `<div class="rw total"><span>TOTAL GANHO</span><b><span class="coin-ic ci"></span> ${r.total.toLocaleString('pt-BR')}</b></div><div class="rw"><span>Novo saldo</span><b>${r.balance.toLocaleString('pt-BR')}</b></div>`;
@@ -1301,7 +1306,7 @@ class Game {
     $('rainfx').classList.toggle('on', w === 'rain'); $('dropfx').classList.toggle('on', w === 'rain'); $('frostfx').classList.toggle('on', w === 'snow');
   }
   startRace(trackId, diffId, mode = 'race') {
-    if (!this.economy.trackUnlocked(trackId)) { this.ui.toast(`${TRACK_DEFS[trackId].name} bloqueado: ${this.economy.lockReason(trackId)}`, 'err', 'lock'); this.audio.error(); return; }
+    if (!this.multiplayer && !this.economy.trackUnlocked(trackId)) { this.ui.toast(`${TRACK_DEFS[trackId].name} bloqueado: ${this.economy.lockReason(trackId)}`, 'err', 'lock'); this.audio.error(); return; }
     this.economy.data.last = { track: trackId, diff: diffId, mode }; this.economy.save();
     this.audio.init();
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); // Espaço (nitro) não pode "clicar" botões
@@ -1336,7 +1341,7 @@ class Game {
       this.ui.loading(false);
     }, 80));
   }
-  restartRace() { const R = this.race; if (R) this.startRace(R.trackId, R.diffId, R.mode); }
+  restartRace() { if(this.multiplayer){this.ui.toast('Para outra corrida, encerre a sala e envie um novo convite.');return;} const R = this.race; if (R) this.startRace(R.trackId, R.diffId, R.mode); }
   disposeRace() {
     if (!this.race) return;
     try { this.race.dispose(); } catch (e) { console.warn(e); }
@@ -1349,6 +1354,7 @@ class Game {
     this.ui.show(to); this.ui.refreshCoins(); this.ui.renderLevel();
   }
   togglePause() {
+    if(this.multiplayer){this.ui.toast('A corrida online não pausa. Use Voltar no JARVIS para sair.');return;}
     const R = this.race; if (!R || R.resultsShown) return;
     R.paused = !R.paused;
     if (!R.paused && document.activeElement && document.activeElement.blur) document.activeElement.blur();
