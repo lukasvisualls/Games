@@ -6,7 +6,7 @@ Os pacotes oficiais ficam em **Releases**. `catalog.json` informa versão, taman
 
 ## Jogos
 
-Battle Royale, Tetris, Flappy Bird, Agar.io, Minecraft 3D, Nitro Rush 3D, Neon Breaker, Vice City Web e Rhythia.
+Battle Royale, Tetris, Flappy Bird, Agar.io, Minecraft 3D, Nitro Rush 3D, Neon Breaker, Rhythia, Counter-Strike 1.6 e Super Tux Kart.
 
 ## Controles corrigidos
 
@@ -23,3 +23,4 @@ Este repositório não recebe partidas, moedas, credenciais, mapas pessoais ou d
 ## Créditos
 
 As fontes e atribuições estão em `PROVENANCE.md` e nos READMEs de cada jogo. Os avisos MIT dos motores gráficos foram preservados. Não atribuímos licença própria ao código de terceiros que não declare licença. Rhythia é distribuído como runtime nativo na release, sem mapas ou configuração do usuário.
+
