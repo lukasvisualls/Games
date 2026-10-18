@@ -75,9 +75,11 @@
       "installerSize": 279164882,
       "installedEntry": "hl.exe",
       "installLocations": [
-        "%ProgramFiles(x86)%/Counter-Strike 1.6/hl.exe",
-        "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
-        "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
+        "C:/Jogos/Counter-Strike 1.6/CS 1.6/hl.exe",
+  "C:/Jogos/Counter-Strike 1.6/hl.exe",
+  "%ProgramFiles(x86)%/Counter-Strike 1.6/hl.exe",
+  "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
+  "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
       ],
       "disabled": false
     }
