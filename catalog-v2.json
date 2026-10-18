@@ -74,12 +74,25 @@
       "installerSha256": "0b2c919f8fe3d145dbe4258d91b7436de70134b2abb8b200911be7fddf6198e6",
       "installerSize": 279164882,
       "installedEntry": "hl.exe",
+      "launchArgs": [
+        "-game",
+        "cstrike"
+      ],
       "installLocations": [
         "C:/Jogos/Counter-Strike 1.6/CS 1.6/hl.exe",
-  "C:/Jogos/Counter-Strike 1.6/hl.exe",
-  "%ProgramFiles(x86)%/Counter-Strike 1.6/hl.exe",
-  "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
-  "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
+        "C:/Jogos/Counter-Strike 1.6/hl.exe",
+        "%ProgramFiles(x86)%/Counter-Strike 1.6/hl.exe",
+        "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
+        "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
+      ],
+      "uninstallLocations": [
+        "C:/Jogos/Counter-Strike 1.6/unins000.exe",
+        "C:/Jogos/Counter-Strike 1.6/CS 1.6/unins000.exe",
+        "C:/Jogos/Counter-Strike 1.6/uninstall.exe",
+        "C:/Jogos/Counter-Strike 1.6/CS 1.6/uninstall.exe",
+        "%ProgramFiles(x86)%/Counter-Strike 1.6/unins000.exe",
+        "%ProgramFiles%/Counter-Strike 1.6/unins000.exe",
+        "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/unins000.exe"
       ],
       "disabled": false
     }
