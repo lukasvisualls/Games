@@ -1,0 +1,32 @@
+{
+  "SuperTuxKart-1.5-src.tar.gz": {
+    "url": "https://github.com/supertuxkart/stk-code/releases/download/1.5/SuperTuxKart-1.5-src.tar.gz",
+    "size": 726171140,
+    "sha256": "33cf8841e4ff4082d80b9248014295bbbea61d14683e86dff100e3ab8f7b27cb"
+  },
+  "luanti-5.17.0-source.tar.gz": {
+    "url": "https://github.com/luanti-org/luanti/archive/refs/tags/5.17.0.tar.gz",
+    "size": 12672872,
+    "sha256": "52e7dd315ae0e5c3868a23231e691578cd694bcca5af627fc57c03f32bdc846f"
+  },
+  "VoxeLibre-0.92.3.zip": {
+    "url": "https://github.com/VoxeLibre/VoxeLibre/archive/refs/tags/0.92.3.zip",
+    "size": 84515080,
+    "sha256": "13168ebebe12795e808eb1db7556d169568b49c881b16c9a6565623fc7b2c571"
+  },
+  "openal-soft-1.25.1-source.tar.gz": {
+    "url": "https://github.com/kcat/openal-soft/archive/refs/tags/1.25.1.tar.gz",
+    "size": 1386986,
+    "sha256": "5f8efe8dfba5e9307a50251ba615ace857c7fa9dddfe34130b83e213d7f7cf24"
+  },
+  "gettext-0.20.2-source.tar.xz": {
+    "url": "https://ftp.gnu.org/gnu/gettext/gettext-0.20.2.tar.xz",
+    "size": 9514892,
+    "sha256": "b22b818e644c37f6e3d1643a1943c32c3a9bff726d601e53047d2682019ceaba"
+  },
+  "libiconv-1.17-source.tar.gz": {
+    "url": "https://ftp.gnu.org/gnu/libiconv/libiconv-1.17.tar.gz",
+    "size": 5413283,
+    "sha256": "8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313"
+  }
+}
