@@ -1,0 +1,124 @@
+{
+  "version": 3,
+  "games": {
+    "battle-royale": {
+      "version": "1.0.1",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/battle-royale.zip",
+      "sha256": "58d29a6586ab76f663063ea1a51558ab1db366a03b1e4eeb2fa95225d611c80a",
+      "size": 200005
+    },
+    "tetris": {
+      "version": "1.1.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/tetris-1.1.0/tetris.zip",
+      "sha256": "6f0576e613dc8f0f7b99466e9f4945868fec1fc14741d51a2f23ce8e2a26e28e",
+      "size": 17260,
+      "multiplayer": "realtime"
+    },
+    "flappy-bird": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/flappy-bird.zip",
+      "sha256": "026a225f40f4f503af2d56a32ba6534883995765527294ea4bcb5f61f7efef97",
+      "size": 17611
+    },
+    "agario": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/agario.zip",
+      "sha256": "c2f5edcbd483768a967f2d045b59e13c99868713c2612d082f2e169696e34e8d",
+      "size": 14343
+    },
+    "minecraft": {
+      "version": "1.0.1",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/minecraft.zip",
+      "sha256": "3b77cec50c153dd3bd3156c567080bf853abc30851eaea4ed74bf15d1ca49a18",
+      "size": 322650
+    },
+    "nitro-rush": {
+      "version": "1.1.1",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/jarvis-native-2026-10-19/nitro-rush.zip",
+      "sha256": "7a4469d2d731777b117c13180ee8eec923ea461b903740874a12157fb8b243c7",
+      "size": 555591,
+      "multiplayer": "realtime"
+    },
+    "neon-breaker": {
+      "version": "1.0.0",
+      "kind": "web",
+      "entry": "index.html",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/neon-breaker.zip",
+      "sha256": "ee1ab4009628832429c8d53ef332fb0b830a888786ae918dbe4275fb513f0577",
+      "size": 11491
+    },
+    "rhythia": {
+      "version": "1.0.0",
+      "kind": "native",
+      "entry": "Rhythia.exe",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/rhythia.zip",
+      "sha256": "3563b21844bed66e9c01cc86f993785609ac2ce86c985247437f5737f538373b",
+      "size": 83988857
+    },
+    "cs": {
+      "version": "1.6.0",
+      "kind": "native-installer",
+      "displayName": "Counter-Strike 1.6",
+      "installerUrl": "https://github.com/lukasvisualls/Games/releases/download/cs-1.6.0/Counter-Strike.exe",
+      "installerSha256": "0b2c919f8fe3d145dbe4258d91b7436de70134b2abb8b200911be7fddf6198e6",
+      "installerSize": 279164882,
+      "installedEntry": "hl.exe",
+      "launchArgs": [
+        "-game",
+        "cstrike"
+      ],
+      "installLocations": [
+        "C:/Jogos/Counter-Strike 1.6/CS 1.6/hl.exe",
+        "C:/Jogos/Counter-Strike 1.6/hl.exe",
+        "%ProgramFiles(x86)%/Counter-Strike 1.6/hl.exe",
+        "%ProgramFiles%/Counter-Strike 1.6/hl.exe",
+        "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/hl.exe"
+      ],
+      "uninstallLocations": [
+        "C:/Jogos/Counter-Strike 1.6/unins000.exe",
+        "C:/Jogos/Counter-Strike 1.6/CS 1.6/unins000.exe",
+        "C:/Jogos/Counter-Strike 1.6/uninstall.exe",
+        "C:/Jogos/Counter-Strike 1.6/CS 1.6/uninstall.exe",
+        "%ProgramFiles(x86)%/Counter-Strike 1.6/unins000.exe",
+        "%ProgramFiles%/Counter-Strike 1.6/unins000.exe",
+        "%LOCALAPPDATA%/Programs/Counter-Strike 1.6/unins000.exe"
+      ],
+      "multiplayer": "none",
+      "disabled": true,
+      "comingSoon": true,
+      "disabledReason": "Em breve, desativado por solicitação do proprietário. Arquivos preservados."
+    },
+    "tux-kart": {
+      "version": "1.5.0",
+      "kind": "native",
+      "entry": "stk-code/build-x86_64/bin/supertuxkart.exe",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/jarvis-native-2026-10-19/tux-kart.zip",
+      "sha256": "e268ed0c756b0e68d0e8a62f454ab6ba5a89234e36b6e69194f7c6858ff5c516",
+      "size": 739754502,
+      "displayName": "Super Tux Kart",
+      "multiplayer": "none"
+    },
+    "voxelibre": {
+      "version": "0.92.3",
+      "kind": "native",
+      "entry": "bin/luanti.exe",
+      "url": "https://github.com/lukasvisualls/Games/releases/download/jarvis-native-2026-10-19/voxelibre.zip",
+      "sha256": "37facb914dd56f7fb0e8aeb4f0e70eb294b1338e55f1fa5d2fd5094f3efd4eb1",
+      "size": 103178041,
+      "displayName": "VoxeLibre",
+      "multiplayer": "none"
+    }
+  }
+}
