@@ -2,12 +2,18 @@
   "version": 3,
   "games": {
     "battle-royale": {
-      "version": "1.0.1",
+      "version": "1.2.0",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/battle-royale.zip",
-      "sha256": "58d29a6586ab76f663063ea1a51558ab1db366a03b1e4eeb2fa95225d611c80a",
-      "size": 200005
+      "url": "https://github.com/lukasvisualls/Games/releases/download/games-amigos-2026-10-21/battle-royale.zip",
+      "sha256": "dbb4aed9cc5ea289b8809a4638bea17dbea78588410429736d079627ae329298",
+      "size": 200391,
+      "multiplayer": "none",
+      "friendMultiplayer": {
+        "protocol": 1,
+        "minJarvis": "2.1.149",
+        "players": 2
+      }
     },
     "tetris": {
       "version": "1.1.0",
@@ -27,20 +33,32 @@
       "size": 17611
     },
     "agario": {
-      "version": "1.0.0",
+      "version": "1.2.0",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.0/agario.zip",
-      "sha256": "c2f5edcbd483768a967f2d045b59e13c99868713c2612d082f2e169696e34e8d",
-      "size": 14343
+      "url": "https://github.com/lukasvisualls/Games/releases/download/games-amigos-2026-10-21/agario.zip",
+      "sha256": "e20a4e6589e681f07523a9828eeba0b5adc733bb90a59dcdaeaca93b0486ac6e",
+      "size": 16293,
+      "multiplayer": "none",
+      "friendMultiplayer": {
+        "protocol": 1,
+        "minJarvis": "2.1.149",
+        "players": 2
+      }
     },
     "minecraft": {
-      "version": "1.0.1",
+      "version": "1.2.0",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/v1.0.1/minecraft.zip",
-      "sha256": "3b77cec50c153dd3bd3156c567080bf853abc30851eaea4ed74bf15d1ca49a18",
-      "size": 322650
+      "url": "https://github.com/lukasvisualls/Games/releases/download/games-amigos-2026-10-21/minecraft.zip",
+      "sha256": "458456be7531757035bf9253b3cd1fb5f8616860a0a74d5303a6148bc346a41f",
+      "size": 315480,
+      "multiplayer": "none",
+      "friendMultiplayer": {
+        "protocol": 1,
+        "minJarvis": "2.1.149",
+        "players": 2
+      }
     },
     "nitro-rush": {
       "version": "1.1.1",

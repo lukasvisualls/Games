@@ -341,8 +341,13 @@
 <script type="module">
 import * as THREE from './engine/three.module.js';
 await JarvisGameProgress.ready;
+const friendParams = new URLSearchParams(location.search);
+const friendRoom = /^[0-9a-f-]{36}$/i.test(friendParams.get('friendRoom') || '') ? friendParams.get('friendRoom') : null;
+const friendWorldKey = friendRoom ? 'jarvis_mc_friend_' + friendRoom + '_' + friendParams.get('role') : 'jarvis_mc_world';
+const friendSeed = friendRoom ? [...friendRoom].reduce((seed,c)=>Math.imul(seed ^ c.charCodeAt(0),16777619),2166136261) >>> 0 : null;
+let friendBlockChange = null, friendApplying = false;
 let jarvisSaved = null;
-try { jarvisSaved = JSON.parse(localStorage.getItem('jarvis_mc_world')); } catch {}
+try { jarvisSaved = JSON.parse(localStorage.getItem(friendWorldKey)); } catch {}
 if (!jarvisSaved || jarvisSaved.v !== 1 || !Number.isInteger(jarvisSaved.seed)) jarvisSaved = null;
 const jarvisBlockEdits = new Map(jarvisSaved?.edits || []);
 
@@ -801,7 +806,7 @@ window.addEventListener('resize', () => {
 });
 
 // ================= GERAÇÃO DE MUNDO =================
-const WORLD_SEED = jarvisSaved?.seed ?? Math.floor(Math.random() * 1e9);
+const WORLD_SEED = friendSeed ?? jarvisSaved?.seed ?? Math.floor(Math.random() * 1e9);
 const SEA_LEVEL = 20;
 
 // Math.imul faz a multiplicação exata em 32 bits. Com o `*` normal o resultado
@@ -1279,6 +1284,7 @@ function getBlock(x, y, z) {
 }
 function setBlock(x, y, z, id) {
   if (y < 0 || y >= CHUNK_H) return;
+  if (friendBlockChange && !friendApplying && friendBlockChange(x,y,z,id) === false) return;
   const cx = Math.floor(x / CHUNK), cz = Math.floor(z / CHUNK);
   const ch = getChunk(cx, cz);
   const lx = x - cx * CHUNK, lz = z - cz * CHUNK;
@@ -4295,8 +4301,7 @@ function startMusic() {
 // ================= INPUT / PAUSE / MODOS =================
 const keys = {};
 const mouse = { left: false, right: false };
-let mouseFallback = false;
-const locked = () => document.pointerLockElement === canvas || (mouseFallback && started && !dead && !invOpen && pauseOverlay.style.display === 'none');
+const locked = () => document.pointerLockElement === canvas;
 let started = false;
 let lastWTap = -9, lastSpaceTap = -9;
 let debugVisible = false;
@@ -4355,21 +4360,21 @@ document.addEventListener('mouseup', e => {
 const startOverlay = document.getElementById('start');
 const pauseOverlay = document.getElementById('pause');
 function lockPointer() {
-  started = true;
-  mouseFallback = true;
-  startOverlay.style.display = pauseOverlay.style.display = 'none';
   canvas.tabIndex = 0;
   canvas.focus();
-  try { const result = canvas.requestPointerLock(); result?.catch(() => { mouseFallback = true; }); } catch { mouseFallback = true; }
+  try { const result = canvas.requestPointerLock(); result?.catch(showPointerError); } catch { showPointerError(); }
 }
-document.addEventListener('pointerlockerror', () => { mouseFallback = true; });
+function showPointerError() {
+  if (started) pauseOverlay.style.display = 'flex'; else startOverlay.style.display = 'flex';
+  document.getElementById(started ? 'resumeBtn' : 'startBtn').textContent = 'Clique para capturar o mouse e jogar';
+}
+document.addEventListener('pointerlockerror', showPointerError);
 document.getElementById('startBtn').addEventListener('click', () => { initAudio(); lockPointer(); });
 document.getElementById('resumeBtn').addEventListener('click', lockPointer);
 document.getElementById('respawnBtn').addEventListener('click', respawn);
 
 document.addEventListener('pointerlockchange', () => {
   if (document.pointerLockElement === canvas) {
-    mouseFallback = false;
     started = true;
     startOverlay.style.display = 'none';
     pauseOverlay.style.display = 'none';
@@ -4384,6 +4389,7 @@ document.addEventListener('pointerlockchange', () => {
 
 // modo de jogo
 function setMode(m) {
+  if(friendRoom) m='creative';
   mode = m;
   player.fly = false;
   hp = 20;
@@ -4509,7 +4515,7 @@ function animate() {
     } else { placeRepeat = 0.2; cancelEating(); }
     updateDayNight(dt);
     updateMobSpawning(dt);
-    updateMobs(dt, now);
+    if(!friendRoom) updateMobs(dt, now);
     updateArrows(dt);
     updateDrops(dt, now);
     updateTNTs(dt);
@@ -4619,8 +4625,8 @@ function animate() {
   // procura um ponto em terra firme, acima do nível do mar e fora da praia
   let sx = 0, sz = 0;
   for (let tries = 0; tries < 400; tries++) {
-    sx = Math.floor((Math.random() - 0.5) * 3000);
-    sz = Math.floor((Math.random() - 0.5) * 3000);
+    sx = friendRoom ? Math.floor(Math.sin(friendSeed + tries*2)*1400) : Math.floor((Math.random() - 0.5) * 3000);
+    sz = friendRoom ? Math.floor(Math.sin(friendSeed + tries*2+1)*1400) : Math.floor((Math.random() - 0.5) * 3000);
     const col = column(sx, sz);
     if (col.biome !== 'ocean' && col.h > SEA_LEVEL + 1) break;
   }
@@ -4638,10 +4644,10 @@ function animate() {
 
 buildInvDOM();
 initPlayerView();
-setMode('survival');
+setMode(friendRoom?'creative':'survival');
 
 if (jarvisSaved) {
-  mode = jarvisSaved.mode === 'creative' ? 'creative' : 'survival';
+  mode = friendRoom || jarvisSaved.mode === 'creative' ? 'creative' : 'survival';
   if (Array.isArray(jarvisSaved.slots) && jarvisSaved.slots.length === INV_SIZE) slots = jarvisSaved.slots;
   if (Array.isArray(jarvisSaved.armor) && jarvisSaved.armor.length === 4) armor = jarvisSaved.armor;
   player.yaw = jarvisSaved.yaw || 0; player.pitch = jarvisSaved.pitch || 0;
@@ -4664,16 +4670,17 @@ let jarvisWorldActive = true;
 function jarvisCaptureWorld() {
   if (!jarvisWorldActive) return;
   const saved = { v:1, seed:WORLD_SEED, edits:[...jarvisBlockEdits], pos:player.pos.toArray(), spawn:SPAWN.toArray(), yaw:player.yaw, pitch:player.pitch, mode, slots, armor, hp, food, saturation, exhaustion, dayTime, selectedSlot, furnaces:[...furnaces], craftSize, craftGrid, heldStack };
-  localStorage.setItem('jarvis_mc_world', JSON.stringify(saved));
+  localStorage.setItem(friendWorldKey, JSON.stringify(saved));
 }
 JarvisGameProgress.registerCapture(jarvisCaptureWorld);
 if (jarvisSaved) document.getElementById('startBtn').textContent = 'Continuar mundo';
 async function jarvisNewWorld() {
+  if(friendRoom) return;
   if (!confirm('Apagar este mundo e seu inventário para criar um novo?')) return;
   jarvisWorldActive = false;
   clearInterval(jarvisSaveTimer);
   JarvisGameProgress.registerCapture(null);
-  localStorage.removeItem('jarvis_mc_world');
+  localStorage.removeItem(friendWorldKey);
   await JarvisGameProgress.flush(false);
   sessionStorage.setItem('jarvis_mc_start_new', '1');
   location.reload();
@@ -4689,7 +4696,7 @@ jarvisCaptureWorld();
 drawHud(true);
 
 // animais iniciais
-for (let i = 0; i < 7; i++) {
+for (let i = 0; i < (friendRoom ? 0 : 7); i++) {
   const a = Math.random() * Math.PI * 2, r = 12 + Math.random() * 20;
   const x = SPAWN.x + Math.cos(a) * r, z = SPAWN.z + Math.sin(a) * r;
   if (biomeAt(Math.floor(x), Math.floor(z)) !== 'desert') {
@@ -4698,6 +4705,86 @@ for (let i = 0; i < 7; i++) {
   }
 }
 
+if(friendRoom) {
+  document.getElementById('jarvisNewWorld').hidden=true;
+  document.getElementById('jarvisNewWorldPause').hidden=true;
+  document.getElementById('modeSurv').hidden=true;
+  document.getElementById('startBtn').textContent='Jogar com amigo · Criativo';
+}
+window.JarvisFriendMultiplayer = {
+ connect({role,room,name,remoteName,send,onEnd}) {
+  if(!friendRoom || room!==friendRoom || !['host','guest'].includes(role)) throw Error('Sala do Minecraft inválida.');
+  let closed=false,ready=role==='host',revision=0,lastRevision=0,lastPose=performance.now(),remotePose=null;
+  const safeName=String(remoteName||'Amigo').slice(0,24);
+  const avatar=new THREE.Group(),mat=new THREE.MeshLambertMaterial({color:role==='host'?0xffaa44:0x22ccdd});
+  for(const [w,h,d,x,y] of [[.5,.7,.3,0,.8],[.45,.45,.45,0,1.4],[.18,.6,.2,-.16,.15],[.18,.6,.2,.16,.15]]) {
+   const part=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);part.position.set(x,y,0);avatar.add(part);
+  }
+  const labelCanvas=document.createElement('canvas');labelCanvas.width=256;labelCanvas.height=64;
+  const context=labelCanvas.getContext('2d');context.font='24px sans-serif';context.fillStyle='white';context.textAlign='center';context.fillText(safeName,128,38);
+  const label=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(labelCanvas)}));label.position.y=2;label.scale.set(2,.5,1);avatar.add(label);
+  avatar.visible=false;scene.add(avatar);
+  const validPose=p=>Array.isArray(p)&&p.length===4&&p.every(Number.isFinite)&&Math.abs(p[0])<100000&&p[1]>-128&&p[1]<1024&&Math.abs(p[2])<100000&&Math.abs(p[3])<1e9;
+  const validEdit=e=>Array.isArray(e)&&e.length===4&&e.every(Number.isInteger)&&Math.abs(e[0])<100000&&e[1]>0&&e[1]<CHUNK_H&&Math.abs(e[2])<100000&&e[3]>=0&&e[3]<=COAL_BLOCK&&e[3]!==BEDROCK;
+  const apply=e=>{friendApplying=true;try{setBlock(...e);}finally{friendApplying=false;}};
+  const changes=[];
+  friendBlockChange=(x,y,z,id)=>{
+   const edit=[x,y,z,id];
+   if(!validEdit(edit))return false;
+   if(role==='guest'){if(ready&&player.pos.distanceTo(new THREE.Vector3(x,y,z))<16)send('input',{type:'edit',edit});return false;}
+   changes.push(edit);return true;
+  };
+  const snapshot=()=>send('state',{type:'world',seed:WORLD_SEED,edits:[...jarvisBlockEdits],spawn:SPAWN.toArray(),revision});
+  const receive=packet=>{
+   if(closed||!packet||packet.room!==room)return;
+   const body=packet.body;
+   if(!body||typeof body!=='object')return;
+   if(body.type==='hello'&&role==='host'&&packet.kind==='input'){snapshot();return;}
+   if(body.type==='world'&&role==='guest'&&packet.kind==='state'){
+    if(body.seed!==WORLD_SEED||!Array.isArray(body.edits)||body.edits.length>4096||!Array.isArray(body.spawn)||body.spawn.length!==3||!body.spawn.every(Number.isFinite))return;
+    const entries=[];
+    for(const [key,edits] of body.edits){
+     if(typeof key!=='string'||!/^[-0-9]+,[-0-9]+$/.test(key)||!edits||typeof edits!=='object'||Object.keys(edits).length>16384)return;
+     const [cx,cz]=key.split(',').map(Number);
+     if(!Number.isInteger(cx)||!Number.isInteger(cz)||Math.abs(cx)>6250||Math.abs(cz)>6250)return;
+     for(const [index,value] of Object.entries(edits)){
+      const idx=Number(index);if(!Number.isInteger(idx)||idx<0||idx>=CHUNK*CHUNK*CHUNK_H||!Number.isInteger(value)||value<0||value>COAL_BLOCK)return;
+     }
+     entries.push([key,edits]);
+    }
+    // No solo chunk or solo save is touched by a friend world.
+    jarvisBlockEdits.clear();for(const [key,edits]of entries)jarvisBlockEdits.set(key,edits);
+    for(const chunk of chunks.values())disposeChunkMesh(chunk);
+    chunks.clear();
+    SPAWN.fromArray(body.spawn);player.pos.copy(SPAWN).add(new THREE.Vector3(2,0,0));player.pos.y=groundY(Math.floor(player.pos.x),Math.floor(player.pos.z))+.01;
+    lastRevision=body.revision;ready=true;return;
+   }
+   if(body.type==='edit'&&role==='host'&&packet.kind==='input'&&validEdit(body.edit)&&remotePose&&new THREE.Vector3(...body.edit.slice(0,3)).distanceTo(new THREE.Vector3(...remotePose.slice(0,3)))<16){
+    apply(body.edit);changes.push(body.edit);return;
+   }
+   if(body.type==='edits'&&role==='guest'&&packet.kind==='state'){
+    if(!Array.isArray(body.edits)||body.edits.length>512||!body.edits.every(validEdit)||!Number.isInteger(body.revision))return;
+    if(body.revision!==lastRevision+1){send('input',{type:'hello'});return;}
+    body.edits.forEach(apply);lastRevision=body.revision;return;
+   }
+   if(body.type==='pose'&&packet.kind===(role==='host'?'input':'state')&&validPose(body.pose)){
+    remotePose=body.pose;avatar.position.set(...body.pose.slice(0,3));avatar.rotation.y=body.pose[3];avatar.visible=true;lastPose=performance.now();
+    if(role==='guest'&&Number.isFinite(body.time))dayTime=body.time;
+   }
+  };
+  let ticks=0;
+  const timer=setInterval(()=>{
+   if(closed)return;
+   if(!ready){if(++ticks%10===0)send('input',{type:'hello'});return;}
+   send(role==='host'?'state':'input',{type:'pose',pose:[...player.pos.toArray(),player.yaw],time:dayTime});
+   if(role==='host'&&changes.length){revision++;send('state',{type:'edits',revision,edits:changes.splice(0,512)});}
+   if(performance.now()-lastPose>3000)avatar.visible=false;
+  },75);
+  if(role==='guest')send('input',{type:'hello'});
+  window.__jarvisFriendDebug={get ready(){return ready;},get remote(){return remotePose;},get revision(){return role==='host'?revision:lastRevision;},get edits(){return [...jarvisBlockEdits];}};
+  return {receive,close(){if(closed)return;closed=true;clearInterval(timer);friendBlockChange=null;scene.remove(avatar);avatar.traverse(o=>{o.geometry?.dispose();});mat.dispose();label.material.map.dispose();label.material.dispose();jarvisCaptureWorld();}};
+ }
+};
 animate();
 </script>
 </body>
