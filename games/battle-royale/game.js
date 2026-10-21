@@ -2,6 +2,7 @@
 // projéteis, picareta/farm, inventário, HUD, minimapa e fim de jogo
 
 const canvas = document.getElementById('game');
+let friendBattle = null;
 
 if (typeof THREE === 'undefined') {
   document.getElementById('overlay').classList.remove('hidden');
@@ -157,7 +158,7 @@ window.addEventListener('auxclick', (e) => e.preventDefault());
 // mouse na MESMA direção da câmera (não invertido):
 // mouse p/ direita gira a câmera p/ direita
 document.addEventListener('mousemove', (e) => {
-  if (!game || invOpen || (document.pointerLockElement !== canvas && e.target !== canvas)) return;
+  if (!game || invOpen || document.pointerLockElement !== canvas) return;
   game.camYaw -= e.movementX * 0.0026;
   game.camPitch = clamp(game.camPitch - e.movementY * 0.0026, -1.15, 1.3);
 });
@@ -271,6 +272,7 @@ function updateBus(dt) {
 
 // ---------- início de partida ----------
 function startMatch() {
+  if(friendBattle)return;
   if (game) disposeScene(game.scene);
   el.overlay.classList.add('hidden');
 
@@ -346,7 +348,7 @@ window.quitToMenu = function () {
 
 function livingEntities() {
   const arr = [];
-  if (game.player.alive) arr.push(game.player);
+  for(const p of friendBattle?.humans||[game.player])if(p.alive)arr.push(p);
   for (const b of game.bots) if (b.alive) arr.push(b);
   return arr;
 }
@@ -537,6 +539,7 @@ function jarvisRecordBattle(won) {
 }
 function damageEntity(ent, dmg, source, fx = true) {
   if (!ent.alive) return;
+  if(friendBattle?.humans.includes(ent)&&friendBattle.humans.includes(source))return;
   // escudo azul absorve o dano primeiro (a tempestade ignora escudo)
   if (source !== 'storm' && (ent.shield || 0) > 0) {
     const absorbed = Math.min(ent.shield, dmg);
@@ -561,7 +564,7 @@ function damageEntity(ent, dmg, source, fx = true) {
     );
     if (ent === game.player) {
       game.playerPlacement = 1 + livingEntities().length;
-      jarvisRecordBattle(false);
+      if(!ent.friendRemote)jarvisRecordBattle(false);
       AudioSys.play('lose');
     }
   }
@@ -758,6 +761,7 @@ function updateCamera() {
 
 // ---------- atualização ----------
 function update(dt, t) {
+  if(friendBattle?.role==='guest'){friendBattle.guestStep(dt,t);return;}
   game.frameColliders = game.worldColliders.concat(
     game.build.structures.filter((s) => s.kind === 'wall').map((s) => s.aabb)
   );
@@ -770,6 +774,7 @@ function update(dt, t) {
     game.zone.updateMeshes();
 
     game.player.update(dt);
+    friendBattle?.hostStep(dt);
     for (const b of game.bots) b.update(dt);
     updateProjectiles(dt);
 
@@ -783,7 +788,7 @@ function update(dt, t) {
     updateInteraction();
 
     const botsAlive = game.bots.filter((b) => b.alive).length;
-    if (game.player.alive && botsAlive === 0 && !game.victory) {
+    if ((friendBattle?friendBattle.humans.some(p=>p.alive):game.player.alive) && botsAlive === 0 && !game.victory) {
       game.victory = true;
       jarvisRecordBattle(true);
       AudioSys.play('win');

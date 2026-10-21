@@ -163,7 +163,9 @@ function worldToScreen(wx, wy) {
     ];
 }
 
+let friendAgar=null,friendMouse=null;
 function mouseWorld() {
+    if(friendMouse)return friendMouse;
     return {
         x: cam.x + (mouse.x - canvas.width  * 0.5) / cam.zoom,
         y: cam.y + (mouse.y - canvas.height * 0.5) / cam.zoom
@@ -400,6 +402,7 @@ function startGame() {
     init(name);
 }
 function restartGame() {
+    if(friendAgar)return;
     document.getElementById('death-screen').style.display = 'none';
     cancelAnimationFrame(animId);
     init(playerNameStr);
@@ -428,6 +431,7 @@ function loop() { update(); render(); if (gameRunning) animId = requestAnimation
 
 // ── Split ──
 function splitPlayer() {
+    if(friendAgar?.role==='guest'&&!friendAgar.applying){friendAgar.send('input',{type:'split'});return;}
     if (splitCDTimer > 0) return;
     const mw = mouseWorld();
     const toAdd = [];
@@ -449,6 +453,7 @@ function splitPlayer() {
 
 // ── Eject Mass (W) ──
 function ejectMass() {
+    if(friendAgar?.role==='guest'&&!friendAgar.applying)return;
     if (ejectCDTimer > 0) return;
     const mw = mouseWorld();
     for (const piece of playerPieces) {
@@ -489,7 +494,7 @@ function virusBurstPiece(piece, virus) {
 }
 
 // ── Update ──
-function update() {
+function updatePlayerPieces() {
     if (ejectCDTimer > 0) ejectCDTimer--;
     if (splitCDTimer > 0) splitCDTimer--;
     if (wKeyHeld) ejectMass();
@@ -541,15 +546,6 @@ function update() {
         }
     }
 
-    // ── Update ejected food ──
-    for (const f of food) {
-        if (f.noEatTimer > 0) f.noEatTimer--;
-        if (f.isEjected && (Math.abs(f.vx) > 0.1 || Math.abs(f.vy) > 0.1)) {
-            f.x += f.vx; f.y += f.vy; f.vx *= 0.88; f.vy *= 0.88;
-            f.x = clamp(f.x, 20, WORLD_W-20); f.y = clamp(f.y, 20, WORLD_H-20);
-        }
-    }
-
     // ── Player eats food ──
     for (const p of playerPieces) {
         for (const f of food) {
@@ -571,11 +567,25 @@ function update() {
     }
     for (const [p, v] of bursts) virusBurstPiece(p, v);
 
+}
+function update() {
+    if(friendAgar?.role==='guest'){friendAgar.localCamera();return;}
+    updatePlayerPieces();
+    if(friendAgar)friendAgar.remoteUpdate();
+    // ── Update ejected food ──
+    for (const f of food) {
+        if (f.noEatTimer > 0) f.noEatTimer--;
+        if (f.isEjected && (Math.abs(f.vx) > 0.1 || Math.abs(f.vy) > 0.1)) {
+            f.x += f.vx; f.y += f.vy; f.vx *= 0.88; f.vy *= 0.88;
+            f.x = clamp(f.x, 20, WORLD_W-20); f.y = clamp(f.y, 20, WORLD_H-20);
+        }
+    }
+
     // ── Red spikes ──
     for (const rs of redSpikes) rs.update();
 
     // ── Bots ──
-    const allCells = [...playerPieces, ...bots];
+    const allCells = [...playerPieces, ...(friendAgar?.pieces||[]), ...bots];
     for (let i = bots.length - 1; i >= 0; i--) {
         const bot = bots[i];
         bot.think(allCells);
@@ -600,16 +610,17 @@ function update() {
 
         // Player piece eats bot / bot eats player piece
         let botEaten = false;
-        for (let pi = playerPieces.length - 1; pi >= 0; pi--) {
-            const piece = playerPieces[pi];
+        const humanPieces=[...playerPieces,...(friendAgar?.pieces||[])];
+        for (let pi = humanPieces.length - 1; pi >= 0; pi--) {
+            const piece = humanPieces[pi];
             if (piece.r > bot.r * 1.15 && dist(piece, bot) < piece.r + bot.r * 0.4) {
                 piece.addMass(bot.mass * 0.8);
                 bots.splice(i, 1); scheduleRespawnBot(); botEaten = true; break;
             }
             if (bot.r > piece.r * 1.15 && dist(bot, piece) < bot.r + piece.r * 0.4) {
                 bot.addMass(piece.mass * 0.8);
-                if (playerPieces.length === 1) { gameOver(); return; }
-                playerPieces.splice(pi, 1);
+                if(friendAgar)friendAgar.eaten(piece);
+                else {if (playerPieces.length === 1) { gameOver(); return; } playerPieces.splice(pi, 1);}
             }
         }
         if (botEaten) continue;
@@ -625,6 +636,10 @@ function update() {
         }
     }
 
+    if(friendAgar)friendAgar.pvp();
+    updatePlayerCamera();
+}
+function updatePlayerCamera(){
     // ── Camera ──
     const cen = playerCentroid();
     cam.x += (cen.x - cam.x) * 0.08;
@@ -674,6 +689,7 @@ function render() {
     for (const rs of redSpikes) rs.draw();
     for (const v of viruses) v.draw();
     bots.slice().sort((a,b) => a.r-b.r).forEach(b => b.draw());
+    if(friendAgar)for(const p of friendAgar.pieces)p.draw(true);
     // Draw player pieces smallest first, then show name only on largest
     const sorted = playerPieces.slice().sort((a,b) => a.r-b.r);
     const largest = playerPieces.reduce((mx, p) => p.r > mx.r ? p : mx, playerPieces[0]);
@@ -796,11 +812,12 @@ function drawMinimap() {
 function updateLeaderboard(totalMass) {
     const entries = [
         { name: playerNameStr, mass: totalMass, me: true },
+        ...(friendAgar?.pieces.length?[{name:friendAgar.pieces[0].name,mass:friendAgar.pieces.reduce((s,p)=>s+p.mass,0),me:false}]:[]),
         ...bots.map(b => ({ name: b.name, mass: b.mass, me: false }))
     ].sort((a, b) => b.mass - a.mass).slice(0, 10);
     document.getElementById('lb-list').innerHTML = entries.map((e, i) =>
         `<div class="lb-entry${e.me?' me':''}">
-            <span>${i+1}. ${e.name}</span><span>${Math.floor(e.mass)}</span>
+            <span>${i+1}. ${String(e.name).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span><span>${Math.floor(e.mass)}</span>
         </div>`
     ).join('');
 }
@@ -831,6 +848,56 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
     if (e.code === 'KeyW') wKeyHeld = false;
 });
+window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
+ if(friendAgar||!['host','guest'].includes(role))throw Error('Sala Agar.io já iniciada ou inválida.');
+ const clean=n=>String(n||'Amigo').slice(0,24);
+ const net={role,send,pieces:[],applying:false,remoteInput:{x:WORLD_W/2+250,y:WORLD_H/2,w:false},split:false,lastInput:0,remoteCooldown:0,remoteSplitCooldown:0};
+ document.getElementById('player-name').value=clean(name);startGame();
+ friendAgar=net;
+ net.pieces=[new PlayerPiece(WORLD_W/2+250,WORLD_H/2,300,'#22bbff',clean(remoteName))];
+ const remoteContext=fn=>{
+  const own={pieces:playerPieces,mouse:friendMouse,w:wKeyHeld,eject:ejectCDTimer,split:splitCDTimer};
+  playerPieces=net.pieces;friendMouse=net.remoteInput;wKeyHeld=net.remoteInput.w&&performance.now()-net.lastInput<500;ejectCDTimer=net.remoteCooldown;splitCDTimer=net.remoteSplitCooldown;net.applying=true;
+  try{fn();}finally{net.pieces=playerPieces;net.remoteCooldown=ejectCDTimer;net.remoteSplitCooldown=splitCDTimer;playerPieces=own.pieces;friendMouse=own.mouse;wKeyHeld=own.w;ejectCDTimer=own.eject;splitCDTimer=own.split;net.applying=false;}
+ };
+ net.localCamera=updatePlayerCamera;
+ net.remoteUpdate=()=>remoteContext(()=>{if(net.split){splitPlayer();net.split=false;}updatePlayerPieces();});
+ net.eaten=p=>{
+  const owner=playerPieces.includes(p)?playerPieces:net.pieces;const i=owner.indexOf(p);if(i<0)return;
+  owner.splice(i,1);
+  if(!owner.length)owner.push(new PlayerPiece(rand(300,WORLD_W-300),rand(300,WORLD_H-300),300,p.color,p.name));
+ };
+ net.pvp=()=>{
+  for(const a of [...playerPieces])for(const b of [...net.pieces]){
+   if(!playerPieces.includes(a)||!net.pieces.includes(b))continue;
+   if(a.canEat(b)){a.addMass(b.mass*.8);net.eaten(b);}
+   else if(b.canEat(a)){b.addMass(a.mass*.8);net.eaten(a);}
+  }
+ };
+ const pack=cell=>[Math.round(cell.x*10)/10,Math.round(cell.y*10)/10,Math.round((cell.mass||0)*10)/10,cell.color||'#33aa33',cell.name||'',cell.r,cell.pulse||0];
+ const unpack=(values,prototype)=>Object.assign(Object.create(prototype),{x:values[0],y:values[1],mass:values[2],color:values[3],name:values[4],r:values[5],pulse:values[6],flashFrames:0});
+ const validList=(list,max)=>Array.isArray(list)&&list.length<=max&&list.every(v=>Array.isArray(v)&&v.length===7&&v.slice(0,3).every(Number.isFinite)&&v[0]>=0&&v[0]<=WORLD_W&&v[1]>=0&&v[1]<=WORLD_H&&v[2]>=0&&v[2]<1e9&&typeof v[3]==='string'&&/^#[0-9a-f]{3,8}$/i.test(v[3])&&typeof v[4]==='string'&&v[4].length<=24&&Number.isFinite(v[5])&&v[5]>0&&v[5]<50000&&Number.isFinite(v[6]));
+ let closed=false;
+ const receive=packet=>{
+  if(closed||packet.room!==room)return;const body=packet.body;if(!body||typeof body!=='object')return;
+  if(role==='host'&&packet.kind==='input'){
+   if(body.type==='frame'&&Number.isFinite(body.x)&&Number.isFinite(body.y)){net.remoteInput={x:clamp(body.x,0,WORLD_W),y:clamp(body.y,0,WORLD_H),w:body.w===true};net.lastInput=performance.now();}
+   if(body.type==='split')net.split=true;
+  }else if(role==='guest'&&packet.kind==='state'&&body.type==='frame'){
+   if(!validList(body.own,MAX_PIECES)||!body.own.length||!validList(body.other,MAX_PIECES)||!validList(body.bots,150)||!validList(body.food,600)||!validList(body.viruses,40)||!validList(body.spikes,20))return;
+   playerPieces=body.own.map(v=>unpack(v,PlayerPiece.prototype));net.pieces=body.other.map(v=>unpack(v,PlayerPiece.prototype));bots=body.bots.map(v=>unpack(v,Cell.prototype));food=body.food.map(v=>unpack(v,Food.prototype));viruses=body.viruses.map(v=>unpack(v,Virus.prototype));redSpikes=body.spikes.map(v=>unpack(v,RedSpike.prototype));net.lastState=performance.now();
+  }
+ };
+ const timer=setInterval(()=>{
+  if(closed)return;
+  if(role==='host'){
+   const center=net.pieces[0];
+   send('state',{type:'frame',own:net.pieces.map(pack),other:playerPieces.map(pack),bots:bots.map(pack),food:food.filter(f=>Math.hypot(f.x-center.x,f.y-center.y)<1800).sort((a,b)=>dist2(a,center)-dist2(b,center)).slice(0,600).map(pack),viruses:viruses.map(pack),spikes:redSpikes.map(pack)});
+  }else {const target=mouseWorld();send('input',{type:'frame',x:target.x,y:target.y,w:wKeyHeld});}
+ },75);
+ window.__jarvisFriendDebug={get entities(){return {own:playerPieces,remote:net.pieces,bots,viruses};},get own(){return playerPieces.map(pack);},get remote(){return net.pieces.map(pack);},get food(){return food.map(pack);},get lastState(){return net.lastState;}};
+ return {receive,close(){closed=true;clearInterval(timer);gameRunning=false;cancelAnimationFrame(animId);friendAgar=null;}};
+}};
 Object.assign(window, { startGame, restartGame });
 window.__jarvisGameReady = true;
 </script>

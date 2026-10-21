@@ -38,3 +38,7 @@ Este repositório não recebe partidas, moedas, credenciais, mapas pessoais ou d
 
 As fontes e atribuições estão em `PROVENANCE.md` e nos READMEs de cada jogo. Os avisos MIT dos motores gráficos foram preservados. Não atribuímos licença própria ao código de terceiros que não declare licença. Rhythia é distribuído como runtime nativo na release, sem mapas ou configuração do usuário.
 
+# Jogos com Amigos — JARVIS 2.1.149
+
+Veja [notas de 21/10/2026](RELEASE-NOTES-2026-10-21.md) para os novos modos multiplayer e compatibilidade dos pacotes web 1.2.0. As fontes, licenças e runtimes oficiais anteriores continuam preservados.
+
