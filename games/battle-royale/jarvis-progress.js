@@ -2,7 +2,7 @@
 (() => {
   const id = document.currentScript.dataset.game;
   const configs = {
-    'battle-royale': ['br3d_binds', 'br3d_vol', 'br3d_stats'],
+    'battle-royale': ['br3d_binds', 'br3d_vol', 'br3d_stats', 'br3d_setup'],
     tetris: ['tetris_bestScores', 'tetris_musicEnabled', 'tetris_sfxEnabled', 'tetris_volume'],
     'flappy-bird': ['fb_coins', 'fb_owned', 'fb_skin', 'fb_best'],
     agario: ['agario_best', 'agario_best_date'],
@@ -85,6 +85,7 @@
       for (const src of scripts) await new Promise((resolve, reject) => {
         const script = document.createElement('script'); script.src = src; script.onload = resolve; script.onerror = reject; document.body.append(script);
       });
+      if(id==='battle-royale'){await BattleAssets.ready;if(battlePreferences().mapId==='serra')await BattleAssets.prepareScenery();window.BattleMenu?.ready();}
       window.__jarvisGameReady = true;
     } catch { status('Não foi possível abrir o jogo. Volte ao catálogo e tente novamente.'); }
   }

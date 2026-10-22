@@ -2,16 +2,16 @@
   "version": 3,
   "games": {
     "battle-royale": {
-      "version": "1.2.1",
+      "version": "1.3.0",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/games-latencia-2026-10-22/battle-royale.zip",
-      "sha256": "507993efba18afd7f59ba8503ae6efffda15b22641ea54ec87aa88b6ed6096a1",
-      "size": 200984,
+      "url": "https://github.com/lukasvisualls/Games/releases/download/battle-royale-1.3.0/battle-royale.zip",
+      "sha256": "1ca66321722665a29a5db5cad5c5fa1fb03bc7f6e9f58af37018441f52952f2c",
+      "size": 301571881,
       "multiplayer": "none",
       "friendMultiplayer": {
         "protocol": 1,
-        "minJarvis": "2.1.160",
+        "minJarvis": "2.1.161",
         "players": 2
       }
     },

@@ -216,7 +216,7 @@ function makeBlobShadow(scene) {
 }
 
 class Player {
-  constructor(scene, x, y, z) {
+  constructor(scene, x, y, z, characterId='classic') {
     this.name = 'Você';
     this.scene = scene;
     this.pos = new THREE.Vector3(x, y, z);
@@ -244,7 +244,8 @@ class Player {
     this.swingT = 0;
     this.healing = null; // { left, total, item }
 
-    const char = buildCharacter({ shirt: 0x3fa7ff, pants: 0x2b3a52 });
+    this.characterId=characterId;
+    const char = buildImportedCharacter(characterId)||buildCharacter({ shirt: 0x3fa7ff, pants: 0x2b3a52 });
     this.char = char;
     this.mesh = char.group;
     this.mesh.position.copy(this.pos);
@@ -252,6 +253,13 @@ class Player {
 
     this.shadow = makeBlobShadow(scene);
     this.refreshHeld();
+  }
+
+  setCharacter(id){
+    if(!Object.hasOwn(BATTLE_CHARACTERS,id)||id===this.characterId)return;
+    const old=this.char;this.scene.remove(this.mesh);
+    old.group.traverse(o=>{if(o.geometry&&!o.userData.sharedBattleGeometry)o.geometry.dispose();if(o.isSkinnedMesh)o.skeleton.dispose();});old.mats.forEach(m=>m.dispose());
+    this.char=buildImportedCharacter(id)||buildCharacter({shirt:0x3fa7ff,pants:0x2b3a52});this.mesh=this.char.group;this.mesh.position.copy(this.pos);this.scene.add(this.mesh);this.characterId=id;this.refreshHeld();
   }
 
   // activeSlot -1 = modo picareta (tecla G)
@@ -526,6 +534,7 @@ class Player {
     // braço direito segura a arma/picareta erguida (acompanha a mira)
     this.char.armR.rotation.x =
       this.phase === 'playing' ? -1.3 - game.camPitch * 0.4 + swingRot * 0.5 : swing * 0.7;
+    this.char.animate?.({moving:walking,dt,phase:this.phase,pitch:game.camPitch,crouch:this.crouching,swing:this.swingT,weapon:!!this.weapon});
 
     const ground = this.phase === 'playing'
       ? groundAt(this.pos.x, this.pos.z, this.pos.y)
@@ -534,7 +543,7 @@ class Player {
 
     if (this.flash > 0) this.flash -= dt;
     const f2 = Math.max(0, this.flash / 0.12) * 0.9;
-    for (const m of this.char.mats) m.emissive.setRGB(f2, f2, f2);
+    for (const m of this.char.mats) m.emissive?.setRGB(f2, f2, f2);
   }
 
   die() {

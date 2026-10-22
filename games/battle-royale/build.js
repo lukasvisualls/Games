@@ -225,7 +225,7 @@ class BuildSystem {
 // ---------- chão dinâmico: terreno + estruturas + telhados ----------
 // retorna a altura do "chão" sob (x,z) considerando tudo em que dá para pisar
 function groundAt(x, z, curY) {
-  let g = terrainHeight(x, z);
+  let g = activeMapId==='serra'?BattleAssets.groundAt(x,z,curY):terrainHeight(x, z);
   for (const a of game.worldColliders) {
     if (x >= a.minX && x <= a.maxX && z >= a.minZ && z <= a.maxZ) {
       if (a.top <= curY + 0.6 && a.top > g) g = a.top;
@@ -250,20 +250,23 @@ function circleRectOverlapXZ(x, z, r, aabb) {
 
 // move uma entidade resolvendo colisão eixo a eixo (permite deslizar)
 function resolveMovement3D(ent, dx, dz, colliders) {
+  const oldX=ent.pos.x,oldZ=ent.pos.z;
   ent.pos.x += dx;
+  if(BattleAssets.blockedAt(ent.pos.x,ent.pos.z,ent.pos.y,ent.radius,ent.height)||ent.phase==='playing'&&groundAt(ent.pos.x,ent.pos.z,ent.pos.y)>ent.pos.y+.6)ent.pos.x-=dx;
   for (const a of colliders) {
-    if (ent.pos.y >= a.top - 0.2) continue;
+    if (ent.pos.y >= a.top - 0.2 || a.supportOnly || Number.isFinite(a.bottom)&&ent.pos.y+ent.height<a.bottom) continue;
     if (circleRectOverlapXZ(ent.pos.x, ent.pos.z, ent.radius, a)) {
-      ent.pos.x -= dx;
+      ent.pos.x = oldX;
       break;
     }
   }
 
   ent.pos.z += dz;
+  if(BattleAssets.blockedAt(ent.pos.x,ent.pos.z,ent.pos.y,ent.radius,ent.height)||ent.phase==='playing'&&groundAt(ent.pos.x,ent.pos.z,ent.pos.y)>ent.pos.y+.6)ent.pos.z-=dz;
   for (const a of colliders) {
-    if (ent.pos.y >= a.top - 0.2) continue;
+    if (ent.pos.y >= a.top - 0.2 || a.supportOnly || Number.isFinite(a.bottom)&&ent.pos.y+ent.height<a.bottom) continue;
     if (circleRectOverlapXZ(ent.pos.x, ent.pos.z, ent.radius, a)) {
-      ent.pos.z -= dz;
+      ent.pos.z = oldZ;
       break;
     }
   }

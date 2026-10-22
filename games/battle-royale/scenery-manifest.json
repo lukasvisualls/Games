@@ -1,0 +1,20 @@
+[
+ {"id":"pedra","file":"pedra.glb","name":"Pedra do Alexandre","span":180,"x":700,"z":-700},
+ {"id":"via","file":"via.glb","name":"Via Romana","span":230,"x":-600,"z":-400},
+ {"id":"bridge","file":"bridge.glb","name":"Ponte D. Zameiro","span":260,"x":0,"z":-250},
+ {"id":"city","file":"original-city.glb","name":"Cidade JARVIS","span":280,"x":-180,"z":80},
+ {"id":"wreck","file":"wreck.glb","name":"Naufrágio","span":100,"x":1550,"z":550},
+ {"id":"office","file":"office.glb","name":"Escritório abandonado","span":55,"x":500,"z":200},
+ {"id":"store","file":"store.glb","name":"Loja abandonada","span":45,"x":600,"z":340},
+ {"id":"abandoned","file":"original-abandoned.glb","name":"Bairro de sobrevivência JARVIS","span":230,"x":300,"z":600},
+ {"id":"alley","file":"original-alley.glb","name":"Beco industrial JARVIS","span":65,"x":-370,"z":360},
+ {"id":"classroom","file":"original-classroom.glb","name":"Escola JARVIS","span":30,"x":-300,"z":470},
+ {"id":"factory","file":"original-factory.glb","name":"Fábrica JARVIS","span":100,"x":650,"z":-100},
+ {"id":"forest-road","file":"forest-road.glb","name":"Floresta com estrada","span":300,"x":-1250,"z":-900},
+ {"id":"stone-wall","file":"original-wall.glb","name":"Muro de alvenaria JARVIS","span":55,"x":-420,"z":500},
+ {"id":"grass-chunks","file":"grass-chunks.glb","name":"Clareira","span":12,"x":-520,"z":620,"decorative":true},
+ {"id":"grass-patches","file":"grass-patches.glb","name":"Vegetação rasteira","span":14,"x":-850,"z":50,"decorative":true},
+ {"id":"plants","file":"plants.glb","name":"Jardim silvestre","span":16,"x":-650,"z":620,"decorative":true},
+ {"id":"complex","file":"complex.glb","name":"Complexo 77","span":400,"x":1200,"z":-1250},
+ {"id":"complex-73","file":"complex-73.glb","name":"Distrito 73","span":360,"x":1200,"z":1100}
+]
