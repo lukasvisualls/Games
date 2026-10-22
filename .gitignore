@@ -3,3 +3,7 @@ native-runtime/
 node_modules/
 games-data/
 user/
+
+# Large model inputs and generated fields are delivered in the game Release.
+games/battle-royale/assets/*.glb
+games/battle-royale/assets/*-collision.json

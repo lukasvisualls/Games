@@ -43,7 +43,8 @@ class Bot {
     this.strafeDir = 1;
     this.wanderTarget = null;
 
-    const char = buildCharacter({
+    this.characterId=['swat','forest','desert','night','classic','swat-bl'][index%6];
+    const char = buildImportedCharacter(this.characterId)||buildCharacter({
       shirt: this.colorHex,
       pants: 0x33383f,
       hair: [0x2a1a10, 0x5a4a20, 0x1a1a1a][index % 3],
@@ -123,8 +124,10 @@ class Bot {
     let moveZ = 0;
     let speed = this.speed;
 
-    let target = null;
-    let best = Infinity;
+    this.senseTimer=(this.senseTimer??Math.random()*.2)-dt;
+    let target = this.target?.alive?this.target:null;
+    let best = target?Math.hypot(target.pos.x-this.pos.x,target.pos.z-this.pos.z):Infinity;
+    if(this.senseTimer<=0){this.senseTimer=.2;best=Infinity;target=null;
     for (const e of livingEntities()) {
       if (e === this || e.phase !== 'playing') continue;
       const d = Math.hypot(e.pos.x - this.pos.x, e.pos.z - this.pos.z);
@@ -133,6 +136,7 @@ class Bot {
         target = e;
       }
     }
+    this.target=target;}
 
     const outside = !zone.contains(this.pos.x, this.pos.z);
 
@@ -205,7 +209,8 @@ class Bot {
     let moving = false;
     if (len > 0.01) {
       moving = true;
-      resolveMovement3D(this, (moveX / len) * speed * dt, (moveZ / len) * speed * dt, game.frameColliders);
+      const prior=this.pos.clone();resolveMovement3D(this, (moveX / len) * speed * dt, (moveZ / len) * speed * dt, game.frameColliders);
+      if(this.pos.distanceToSquared(prior)<.0001){this.stuckTime=(this.stuckTime||0)+dt;const turn=this.yaw+Math.PI/2;resolveMovement3D(this,Math.sin(turn)*speed*dt,Math.cos(turn)*speed*dt,game.frameColliders);if(this.stuckTime>1){this.wanderTarget={x:this.pos.x+Math.sin(turn)*12,z:this.pos.z+Math.cos(turn)*12};this.decisionTimer=2;}}else this.stuckTime=0;
     }
 
     // bots acompanham o chão dinâmico (rampas, pisos, telhados)
@@ -219,6 +224,7 @@ class Bot {
   syncMesh(moving, dt) {
     this.mesh.position.copy(this.pos);
     this.mesh.rotation.y = this.yaw;
+    if(game?.player&&this.pos.distanceToSquared(game.player.pos)>100*100)return;
 
     if (moving) this.animT += dt * 9;
     const swing = moving ? Math.sin(this.animT) * 0.55 : 0;
@@ -226,12 +232,13 @@ class Bot {
     this.char.legR.rotation.x = -swing;
     this.char.armL.rotation.x = -swing * 0.7;
     this.char.armR.rotation.x = -1.3; // braço direito sempre segurando a arma
+    this.char.animate?.({moving,dt,phase:this.phase,weapon:true});
 
     this.shadow.position.set(this.pos.x, terrainHeight(this.pos.x, this.pos.z) + 0.05, this.pos.z);
     this.tag.update(this.hp / this.maxHp);
 
     const f = Math.max(0, this.flash / 0.12) * 0.9;
-    for (const m of this.char.mats) m.emissive.setRGB(f, f, f);
+    for (const m of this.char.mats) m.emissive?.setRGB(f, f, f);
   }
 
   die() {

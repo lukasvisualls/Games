@@ -14,8 +14,9 @@ if (typeof THREE === 'undefined') {
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputEncoding=THREE.sRGBEncoding;
 
-const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1500);
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 6500);
 const UP = new THREE.Vector3(0, 1, 0);
 
 function resize() {
@@ -52,12 +53,12 @@ function aimRaycast() {
   const step = f.clone().multiplyScalar(0.6);
   for (let i = 0; i < 420; i++) {
     p.add(step);
-    if (p.y <= terrainHeight(p.x, p.z)) return p;
+    if (p.y <= (activeMapId==='serra'?arenaBaseHeight(p.x,p.z):terrainHeight(p.x,p.z)) || BattleAssets.solidAt(p.x,p.z,p.y)) return p;
     for (const st of game.build.structures) {
       if (st.hitTest(p.x, p.y, p.z)) return p;
     }
     for (const a of game.worldColliders) {
-      if (p.y <= a.top && p.x >= a.minX && p.x <= a.maxX && p.z >= a.minZ && p.z <= a.maxZ) return p;
+      if (p.y <= a.top && (!Number.isFinite(a.bottom)||p.y>=a.bottom) && p.x >= a.minX && p.x <= a.maxX && p.z >= a.minZ && p.z <= a.maxZ) return p;
     }
     for (const e of livingEntities()) {
       if (e === game.player) continue;
@@ -206,8 +207,9 @@ function addMaterial(mat, n) {
 
 function disposeScene(scene) {
   scene.traverse((obj) => {
-    if (obj.geometry) obj.geometry.dispose();
-    if (obj.material) {
+    if (obj.geometry&&!obj.userData.sharedBattleGeometry) obj.geometry.dispose();
+    if(obj.isSkinnedMesh)obj.skeleton.dispose();
+    if (obj.material&&!obj.userData.sharedBattleMaterial) {
       const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
       for (const m of mats) m.dispose();
     }
@@ -243,11 +245,12 @@ function makeBus(scene) {
   const ang = Math.random() * Math.PI * 2;
   const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
   const offset = (Math.random() - 0.5) * 160;
-  const start = new THREE.Vector3(-dir.x * (HALF_WORLD + 50) - dir.z * offset, 110, -dir.z * (HALF_WORLD + 50) + dir.x * offset);
+  const altitude=activeMapId==='classic'?110:300;
+  const start = new THREE.Vector3(-dir.x * (HALF_WORLD + 50) - dir.z * offset, altitude, -dir.z * (HALF_WORLD + 50) + dir.x * offset);
   group.position.copy(start);
   group.rotation.y = Math.atan2(dir.x, dir.z);
 
-  return { group, start, dir, speed: 40, t: 0, len: (HALF_WORLD + 50) * 2, done: false };
+  return { group, start, dir, speed: 40*WORLD_SIZE/800, t: 0, len: (HALF_WORLD + 50) * 2, done: false };
 }
 
 function updateBus(dt) {
@@ -271,17 +274,18 @@ function updateBus(dt) {
 }
 
 // ---------- início de partida ----------
-function startMatch() {
+function startMatch(options={}) {
   if(friendBattle)return;
   if (game) disposeScene(game.scene);
+  const preferences=battlePreferences();selectBattleMap(options.mapId||preferences.mapId);
   el.overlay.classList.add('hidden');
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x9fd6f2, 260, 780);
+  scene.fog = new THREE.Fog(0x9fd6f2, activeMapId==='classic'?260:900, activeMapId==='classic'?780:4600);
   renderer.setClearColor(0x9fd6f2);
 
-  scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x4a7d3a, 0.85));
-  const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+  scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x4a7d3a, activeMapId==='classic'?.85:.65));
+  const sun = new THREE.DirectionalLight(0xffffff, activeMapId==='classic'?.9:.65);
   sun.position.set(100, 180, 80);
   scene.add(sun);
 
@@ -310,19 +314,22 @@ function startMatch() {
   };
 
   const world = buildWorld(scene);
+  game.mapId=activeMapId;game.world=world;
+  if(activeMapId!=='classic')game.mapCanvas=buildBattleMapTexture();
   game.worldColliders = world.colliders;
   game.harvestables = world.harvestables;
   game.zone = new Zone(scene);
   game.build = new BuildSystem(scene);
 
   game.bus = makeBus(scene);
-  game.player = new Player(scene, game.bus.group.position.x, game.bus.group.position.y - 3.2, game.bus.group.position.z);
+  game.player = new Player(scene, game.bus.group.position.x, game.bus.group.position.y - 3.2, game.bus.group.position.z,options.characterId||preferences.characterId);
   game.camYaw = game.bus.group.rotation.y + Math.PI; // olhando para trás do ônibus
 
-  // 8 bots de níveis variados (ruins a médios)
-  for (let i = 0; i < 8; i++) {
-    game.bots.push(new Bot(scene, i, 0.12 + i * 0.1 + Math.random() * 0.05));
+  for (let i = 0; i < BATTLE_BOTS; i++) {
+    game.bots.push(new Bot(scene, i, 0.10 + i/BATTLE_BOTS*.78 + Math.random()*.01));
   }
+  game.botLOD=new THREE.InstancedMesh(new THREE.CapsuleGeometry(.35,1.4,3,5),new THREE.MeshLambertMaterial({color:0xffffff}),BATTLE_BOTS);game.botLOD.frustumCulled=false;
+  const empty=new THREE.Matrix4().makeScale(0,0,0);game.bots.forEach((b,i)=>{game.botLOD.setColorAt(i,new THREE.Color(b.colorHex));game.botLOD.setMatrixAt(i,empty);});scene.add(game.botLOD);
 
   for (const s of world.chestSpots) game.chests.push(new Chest(scene, s.x, s.z));
   for (const s of world.lootSpots) spawnPickup(game, s.x, s.z, randomLootItem(0));
@@ -407,6 +414,7 @@ function matColor(mat) {
 }
 
 function destroyHarvestable(h) {
+  h.onDestroy?.();
   for (const m of h.meshes) game.scene.remove(m);
   if (h.collider) {
     const i = game.worldColliders.indexOf(h.collider);
@@ -470,7 +478,7 @@ function updateProjectiles(dt) {
       const py = p.mesh.position.y;
       const pz = p.mesh.position.z;
 
-      if (Math.abs(px) > HALF_WORLD || Math.abs(pz) > HALF_WORLD || py <= terrainHeight(px, pz)) {
+      if (Math.abs(px) > HALF_WORLD || Math.abs(pz) > HALF_WORLD || py <= (activeMapId==='serra'?arenaBaseHeight(px,pz):terrainHeight(px, pz)) || BattleAssets.solidAt(px,pz,py)) {
         spawnParticles(px, py, pz, 0x7a6a4a, 4, 4);
         dead = true;
         break;
@@ -487,7 +495,7 @@ function updateProjectiles(dt) {
       if (dead) break;
 
       for (const a of game.worldColliders) {
-        if (py <= a.top && circleRectOverlapXZ(px, pz, 0.15, a)) {
+        if (py <= a.top && (!Number.isFinite(a.bottom)||py>=a.bottom) && circleRectOverlapXZ(px, pz, 0.15, a)) {
           spawnParticles(px, py, pz, 0x999999, 4, 4);
           dead = true;
           break;
@@ -925,6 +933,7 @@ function drawMapOn(mm, S) {
 
   mm.fillStyle = 'rgba(20, 45, 25, 0.88)';
   mm.fillRect(0, 0, S, S);
+  if(game.mapCanvas)mm.drawImage(game.mapCanvas,0,0,S,S);
 
   mm.fillStyle = 'rgba(150, 150, 155, 0.5)';
   for (const c of CITIES) {
@@ -938,6 +947,7 @@ function drawMapOn(mm, S) {
     mm.arc(toMap(m.x), toMap(m.z), (m.r / WORLD_SIZE) * S * 0.6, 0, Math.PI * 2);
     mm.fill();
   }
+  if(S>400){mm.fillStyle='#e3ece3';mm.font='11px sans-serif';mm.textAlign='center';for(const c of CITIES)if(c.name)mm.fillText(c.name,toMap(c.x),toMap(c.z)-8);}
 
   // safe atual (roxo) e próxima safe (branco tracejado)
   mm.beginPath();
@@ -1009,8 +1019,19 @@ function frame(now) {
   if (game) {
     update(dt, now / 1000);
     updateHUD();
+    updateBattleLOD();
     renderer.render(game.scene, camera);
   }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+
+function updateBattleLOD(){
+ if(!game?.botLOD)return;const matrix=new THREE.Matrix4(),p=game.player.pos;
+ for(let i=0;i<game.bots.length;i++){const b=game.bots[i],distance=b.pos.distanceToSquared(p),far=b.alive&&b.phase!=='bus'&&distance>100*100;
+  b.mesh.visible=b.alive&&b.phase!=='bus'&&!far;b.shadow.visible=b.mesh.visible&&b.phase==='playing';b.tag.sprite.visible=distance<45*45;
+  if(far)matrix.compose(b.pos.clone().add(new THREE.Vector3(0,1.05,0)),new THREE.Quaternion(),new THREE.Vector3(1,1,1));else matrix.makeScale(0,0,0);game.botLOD.setMatrixAt(i,matrix);
+ }
+ game.botLOD.instanceMatrix.needsUpdate=true;
+ if(game.mapId==='serra')for(const object of game.scene.children)if(object.userData.sceneryCenter){const c=object.userData.sceneryCenter;object.visible=Math.hypot(c.x-p.x,c.z-p.z)<500;}
+}

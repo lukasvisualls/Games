@@ -1,16 +1,17 @@
 // Two-human squad. Only the host advances combat, loot, building and the storm.
-window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
+function connectBattleSession({role,room,name,remoteName,send,settings}){
  if(friendBattle||!['host','guest'].includes(role))throw Error('Sala Battle Royale inválida.');
  const realRandom=Math.random;
  let seed=[...room].reduce((v,c)=>Math.imul(v^c.charCodeAt(0),16777619),2166136261)>>>0;
  Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  // Procedural texture caches must not change the sequence used to build the island.
  for(const cache of [_texCache,_clothCache,_structTex])for(const key of Object.keys(cache)){cache[key].dispose();delete cache[key];}
- try{startMatch();}finally{Math.random=realRandom;}
+ try{startMatch({mapId:settings.mapId,characterId:'classic'});}finally{Math.random=realRandom;}
  document.getElementById('menu').classList.add('hidden');
  document.getElementById('lockHint').classList.remove('hidden');
  document.getElementById('menuBtn').hidden=true;
  const local=game.player,remote=new Player(game.scene,...game.player.pos.toArray());
+ local.setCharacter(role==='host'?settings.hostCharacter:settings.guestCharacter);remote.setCharacter(role==='host'?settings.guestCharacter:settings.hostCharacter);
  local.name=String(name||'Você').slice(0,24);remote.name=String(remoteName||'Amigo').slice(0,24);remote.friendRemote=true;
  const humans=role==='host'?[local,remote]:[remote,local];
  const net={role,humans,lastInput:0,input:null,materials:{wood:0,stone:0,metal:0},yaw:game.camYaw,pitch:game.camPitch,revision:0};
@@ -27,6 +28,8 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
   return null;
  };
  const entityOut=(p,yaw)=>({p:p.pos.toArray(),vy:p.vy||0,onGround:p.onGround===true,yaw,hp:p.hp,shield:p.shield,alive:p.alive,phase:p.phase,crouching:p.crouching,slots:p.slots?.map(itemOut),slot:p.activeSlot??-1});
+ const round=(v,n=100)=>Math.round(v*n)/n;
+ const botOut=b=>[round(b.pos.x),round(b.pos.y),round(b.pos.z),round(b.yaw,1000),round(b.hp,10),round(b.shield,10),b.alive?1:0,['bus','air','playing'].indexOf(b.phase)];
  const entityIn=(p,v)=>{
   if(!v||!finite(v.p,3)||!Number.isFinite(v.yaw)||!Number.isFinite(v.hp)||!Number.isFinite(v.shield)||!['bus','air','freefall','glider','playing'].includes(v.phase))return false;
   p.pos.fromArray(v.p);p.hp=clamp(v.hp,0,100);p.shield=clamp(v.shield,0,100);p.alive=v.alive===true;p.phase=v.phase;p.crouching=v.crouching===true;p.mesh.visible=p.shadow.visible=p.alive;
@@ -67,6 +70,7 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
   for(const c of game.chests)c.update(dt,t);
   for(const p of game.pickups)p.update(dt,t);
   game.zone.updateMeshes();updateParticles(dt);updateCamera();
+  for(const b of game.bots)if(b.netTarget){const prior=b.pos.clone();b.pos.lerp(b.netTarget,1-Math.exp(-dt*18));b.syncMesh(b.pos.distanceToSquared(prior)>.00001,dt);}
  };
  const worldOut=()=>({
   type:'world',revision:++net.revision,
@@ -77,7 +81,7 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
  });
  let worldSignature='',closed=false,lastWorld=0,guestRevision=0;
  const worldIn=body=>{
-  if(!Array.isArray(body.structures)||body.structures.length>2000||!Array.isArray(body.harvest)||body.harvest.length>2000||!body.harvest.every(Number.isInteger)||!Array.isArray(body.chests)||body.chests.length!==game.chests.length||!Array.isArray(body.loot)||body.loot.length>1000)return;
+  if(!Array.isArray(body.structures)||body.structures.length>2000||!Array.isArray(body.harvest)||body.harvest.length>12000||!body.harvest.every(Number.isInteger)||!Array.isArray(body.chests)||body.chests.length!==game.chests.length||!Array.isArray(body.loot)||body.loot.length>1000)return;
   if(!body.structures.every(s=>s&&['wall','ramp','floor','pyramid'].includes(s.kind)&&['wood','stone','metal'].includes(s.mat)&&typeof s.key==='string'&&s.key.length<100&&[s.baseY,s.topY,s.dirX,s.dirZ,s.hp,s.maxHp,...Object.values(s.aabb||{})].every(Number.isFinite)&&Object.keys(s.aabb||{}).length===5))return;
   if(!body.loot.every(v=>Array.isArray(v)&&v.length===3&&finite(v.slice(0,2),2)&&itemIn(v[2])))return;
   for(const s of game.build.structures){game.scene.remove(s.mesh);s.mesh.traverse(o=>o.geometry?.dispose());s.material.dispose();}
@@ -125,7 +129,8 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
     if(predicted.distanceTo(local.pos)<2)local.pos.lerp(predicted,.65);
     local.syncMesh(false);
    }else history=[];
-   body.bots.forEach((v,i)=>entityIn(game.bots[i],v));
+   if(!body.bots.every(v=>finite(v,8)&&[0,1].includes(v[6])&&[0,1,2].includes(v[7])))return;
+   body.bots.forEach((v,i)=>{const b=game.bots[i];b.netTarget=new THREE.Vector3(...v.slice(0,3));if(b.pos.distanceToSquared(b.netTarget)>400)b.pos.copy(b.netTarget);b.yaw=v[3];b.hp=clamp(v[4],0,100);b.shield=clamp(v[5],0,100);b.alive=v[6]===1;b.phase=['bus','air','playing'][v[7]];});
    while(game.projectiles.length>body.shots.length){const p=game.projectiles.pop();game.scene.remove(p.mesh);}
    body.shots.forEach((v,i)=>{let p=game.projectiles[i];if(!p){p={mesh:new THREE.Mesh(_projGeo,projMat(v[3]))};game.projectiles.push(p);game.scene.add(p.mesh);}p.mesh.position.set(...v.slice(0,3));p.mesh.material=projMat(v[3]);});
    for(const key of ['x','z','radius','targetX','targetZ','targetRadius','timer','phaseIndex'])if(Number.isFinite(body.zone[key]))game.zone[key]=body.zone[key];
@@ -145,12 +150,33 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
     if(signature!==worldSignature){worldSignature=signature;send('state',state);}else net.revision--;
    }
    const z=game.zone;
-   send('state',{type:'frame',ack:net.ack||0,own:entityOut(remote,net.yaw),other:entityOut(local,game.camYaw),bots:game.bots.map(b=>entityOut(b,b.yaw)),shots:game.projectiles.slice(0,512).map(p=>[...p.mesh.position.toArray(),p.mesh.material.color.getHex()]),zone:{x:z.x,z:z.z,radius:z.radius,targetX:z.targetX,targetZ:z.targetZ,targetRadius:z.targetRadius,timer:z.timer,phaseIndex:z.phaseIndex,state:z.state},bus:[...game.bus.group.position.toArray(),game.bus.group.rotation.y],busDone:game.bus.done,materials:Object.values(net.materials),victory:game.victory,placement:game.playerPlacement,revision:net.revision});
+   send('state',{type:'frame',ack:net.ack||0,own:entityOut(remote,net.yaw),other:entityOut(local,game.camYaw),bots:game.bots.map(botOut),shots:game.projectiles.slice(0,512).map(p=>[...p.mesh.position.toArray(),p.mesh.material.color.getHex()]),zone:{x:z.x,z:z.z,radius:z.radius,targetX:z.targetX,targetZ:z.targetZ,targetRadius:z.targetRadius,timer:z.timer,phaseIndex:z.phaseIndex,state:z.state},bus:[...game.bus.group.position.toArray(),game.bus.group.rotation.y],busDone:game.bus.done,materials:Object.values(net.materials),victory:game.victory,placement:game.playerPlacement,revision:net.revision});
   }else{
    send('input',{type:'frame',seq:inputSeq,yaw:game.camYaw,pitch:game.camPitch,w:!!input.keys.KeyW,a:!!input.keys.KeyA,s:!!input.keys.KeyS,d:!!input.keys.KeyD,crouch:!!input.keys[binds.crouch],fire:input.mouseDown,inv:invOpen});
   }
- },33);
+ },role==='host'?50:33);
  if(role==='guest')send('input',{type:'hello'});
- window.__jarvisFriendDebug={get own(){return entityOut(local,game.camYaw);},get remote(){return entityOut(remote,net.yaw);},get world(){return {harvest:game.harvestables.length,chests:game.chests.length,loot:game.pickups.length,structures:game.build.structures.length};},get lastState(){return net.lastState;}};
- return {receive,close(){if(closed)return;closed=true;clearInterval(timer);document.exitPointerLock();if(game){disposeScene(game.scene);game=null;}friendBattle=null;}};
+ window.__jarvisFriendDebug={get own(){return entityOut(local,game.camYaw);},get remote(){return entityOut(remote,net.yaw);},get mapId(){return game?.mapId;},get characters(){return [local.characterId,remote.characterId];},get world(){return {harvest:game.harvestables.length,chests:game.chests.length,loot:game.pickups.length,structures:game.build.structures.length};},get lastState(){return net.lastState;}};
+ return {receive,setRemoteCharacter:id=>remote.setCharacter(id),close(){if(closed)return;closed=true;clearInterval(timer);document.exitPointerLock();if(game){disposeScene(game.scene);game=null;}friendBattle=null;}};
+}
+// The reliable setup message is sent before the world. Guest preferences never
+// select the host's terrain or seed; a late duplicate cannot reset the match.
+window.JarvisFriendMultiplayer={connect(options){
+ const pref=battlePreferences(),{role,room}=options;let engine=null,closed=false,pending=false;
+ const settings={mapId:pref.mapId,hostCharacter:pref.characterId,guestCharacter:'classic'};
+ const send=(kind,body)=>options.send(kind,role==='guest'&&body.type==='hello'?{...body,characterId:pref.characterId}:body);
+ if(role==='host')engine=connectBattleSession({...options,send,settings});
+ else{document.getElementById('assetStatus').textContent='Aguardando o mapa do anfitrião…';send('input',{type:'hello'});}
+ return {receive(packet){
+  if(closed||packet.room!==room)return;const body=packet.body;
+  if(role==='host'&&packet.kind==='input'&&body?.type==='hello'){
+   settings.guestCharacter=Object.hasOwn(BATTLE_CHARACTERS,body.characterId)?body.characterId:'classic';engine.setRemoteCharacter(settings.guestCharacter);
+   send('state',{type:'setup',content:1,...settings});engine.receive(packet);return;
+  }
+  if(role==='guest'&&packet.kind==='state'&&body?.type==='setup'){
+   if(engine||pending||body.content!==1||!Object.hasOwn(BATTLE_MAPS,body.mapId)||!Object.hasOwn(BATTLE_CHARACTERS,body.hostCharacter)||!Object.hasOwn(BATTLE_CHARACTERS,body.guestCharacter))return;
+   pending=true;Promise.resolve(body.mapId==='serra'?BattleAssets.prepareScenery():null).then(()=>{if(!closed)engine=connectBattleSession({...options,send,settings:body});}).catch(e=>{console.warn(e);options.onEnd?.('Não foi possível carregar o cenário da sala.');}).finally(()=>pending=false);return;
+  }
+  engine?.receive(packet);
+ },close(){if(closed)return;closed=true;engine?.close();}};
 }};

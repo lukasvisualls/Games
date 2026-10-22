@@ -4,7 +4,7 @@ class Zone {
   constructor(scene) {
     this.x = 0;
     this.z = 0;
-    this.radius = 580; // cobre o mapa inteiro no começo (mapa de 800 m)
+    this.radius = HALF_WORLD*Math.SQRT2+15;
 
     // 5 safes: a primeira fecha bem devagar e cada uma seguinte fecha mais
     // rápido; a última fecha POR COMPLETO (raio 0 = tempestade toma tudo)
@@ -15,6 +15,7 @@ class Zone {
       { wait: 18, shrink: 18, radius: 45,  dps: 7 },
       { wait: 14, shrink: 12, radius: 0,   dps: 12 },
     ];
+    if(activeMapId!=='classic')for(const p of this.phases){p.radius*=WORLD_SIZE/800;p.wait*=Math.sqrt(WORLD_SIZE/800);p.shrink*=Math.sqrt(WORLD_SIZE/800);}
     this.phaseIndex = 0;
     this.state = 'waiting'; // 'waiting' | 'shrinking' | 'done'
     this.timer = this.phases[0].wait;

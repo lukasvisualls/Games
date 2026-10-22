@@ -86,9 +86,15 @@
   <!-- MENU INICIAL -->
   <div id="menu">
     <h1>BATTLE ROYALE <span>3D</span></h1>
-    <p class="subtitle">protótipo feito do zero com JavaScript</p>
+    <p class="subtitle">Escolha seu destino · 75 bots · solo ou dupla com amigo</p>
     <p class="subtitle" id="jarvisBattleStats">0 partidas · 0 vitórias</p>
-    <button id="playBtn">▶ JOGAR</button>
+    <div id="battleSetup">
+      <section><h2>01 / ESCOLHA O MAPA</h2><div id="mapChoices" role="group" aria-label="Mapa da partida"></div></section>
+      <section class="characterPanel"><div><h2>02 / SEU PERSONAGEM</h2><div id="characterChoices" role="group" aria-label="Personagem"></div><p class="fixed">No modo com amigo, o anfitrião escolhe o mapa. Seu personagem continua independente.</p></div><canvas id="characterPreview" width="260" height="290" aria-label="Prévia 3D do personagem"></canvas></section>
+    </div>
+    <p id="assetStatus" role="status">Preparando personagem…</p>
+    <button id="playBtn" disabled>▶ JOGAR</button>
+    <details id="assetCredits"><summary>Créditos dos modelos 3D</summary><div id="assetCreditsText"></div><p>Modelos fornecidos pelo usuário; movimentos do esqueleto criados para este protótipo. Não são animações originais do autor.</p></details>
 
     <div id="menuPanels">
       <div class="panel">
@@ -117,7 +123,7 @@
 
   <!-- Ordem importa: game.js integra tudo; menu.js liga os botões -->
   <script type="module">
-    await JarvisGameProgress.load(['engine/three.min.js','audio.js','world.js','zone.js','weapons.js','build.js','player.js','bots.js','game.js','menu.js','friend-multiplayer.js']);
+    await JarvisGameProgress.load(['engine/three.min.js','engine/battle-gltf.js','battle-assets.js','arena-content.js','audio.js','world.js','arena-world.js','zone.js','weapons.js','build.js','player.js','bots.js','game.js','menu.js','battle-lobby.js','friend-multiplayer.js']);
   </script>
 </body>
 </html>

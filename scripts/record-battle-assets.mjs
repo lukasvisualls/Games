@@ -1,0 +1,4 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
+const root=path.resolve(import.meta.dirname,'../games/battle-royale/assets'),credits=[];
+for(const file of fs.readdirSync(root).filter(n=>n.endsWith('.glb'))){const b=fs.readFileSync(path.join(root,file)),j=JSON.parse(b.toString('utf8',20,20+b.readUInt32LE(12)).trim()),e=j.asset.extras||{};credits.push({file,title:e.title||file,author:e.author||'Não informado',license:e.license||'Não informada',source:e.source||null,bytes:b.length,sha256:crypto.createHash('sha256').update(b).digest('hex'),skins:j.skins?.length||0,animations:j.animations?.length||0});}
+fs.writeFileSync(path.join(root,'credits.json'),JSON.stringify(credits,null,2)+'\n');console.log('Créditos e SHA256 dos '+credits.length+' arquivos registrados; isso não substitui comprovação de direitos de redistribuição.');

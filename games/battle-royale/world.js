@@ -1,8 +1,8 @@
 // world.js — terreno 3D, montanhas, cidades e objetos QUEBRÁVEIS que dão material:
 // árvores → madeira · pedras → pedra · carros → ferro · prédios → pedra
 
-const WORLD_SIZE = 800; // o mundo vai de -400 a +400 (em metros)
-const HALF_WORLD = WORLD_SIZE / 2;
+let WORLD_SIZE = 800;
+let HALF_WORLD = WORLD_SIZE / 2;
 
 const MOUNTAINS = [
   { x: -240, z: -260, r: 130, h: 70 },
@@ -20,11 +20,13 @@ const CITIES = [
   { x: 270,  z: 110,  r: 40 },
 ];
 
+const CLASSIC_MOUNTAINS=MOUNTAINS.map(v=>({...v})),CLASSIC_CITIES=CITIES.map(v=>({...v}));
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 function smooth01(t) { return t * t * (3 - 2 * t); }
 
 // altura do terreno em qualquer ponto — função analítica
 function terrainHeight(x, z) {
+  if(activeMapId!=='classic')return arenaHeight(x,z);
   let h =
     3.5 +
     2.2 * Math.sin(x * 0.02) * Math.cos(z * 0.023) +
@@ -87,6 +89,7 @@ function makeWindowTexture(baseColor) {
 
 // ---------- construção do mundo ----------
 function buildWorld(scene) {
+  if(activeMapId!=='classic')return buildArenaWorld(scene);
   const colliders = [];
   const harvestables = [];
   const chestSpots = [];

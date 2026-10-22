@@ -111,7 +111,7 @@
     AudioSys.setVolume(parseFloat(localStorage.getItem('br3d_vol')) || 0.7);
     AudioSys.stopLobbyMusic();
     menuEl.classList.add('hidden');
-    window.startMatch();
+    window.startMatch(battlePreferences());
     canvas.tabIndex = 0; canvas.focus();
     try { canvas.requestPointerLock()?.catch(() => {}); } catch {}
   });
