@@ -325,7 +325,7 @@ class Player {
     this.mesh.rotation.x = 0;
   }
 
-  update(dt) {
+  update(dt, predictionOnly = false) {
     if (!this.alive) return;
 
     const yaw = game.camYaw;
@@ -424,6 +424,9 @@ class Player {
         AudioSys.play('jump');
       }
     }
+
+    // O convidado prevê só movimento. Dano, loot, cura e construção ficam no host.
+    if (predictionOnly) { this.syncMesh(hasMove && this.onGround, dt); return; }
 
     // ---------- clique esquerdo: atirar / picaretar / curar ----------
     this.fireCooldown -= dt;

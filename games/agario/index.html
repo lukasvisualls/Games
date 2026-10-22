@@ -494,10 +494,12 @@ function virusBurstPiece(piece, virus) {
 }
 
 // ── Update ──
-function updatePlayerPieces() {
+function updatePlayerPieces(predictionOnly = false) {
+    if (!predictionOnly) {
     if (ejectCDTimer > 0) ejectCDTimer--;
     if (splitCDTimer > 0) splitCDTimer--;
     if (wKeyHeld) ejectMass();
+    }
 
     // ── Move player pieces ──
     const mw = mouseWorld();
@@ -517,6 +519,9 @@ function updatePlayerPieces() {
         if (p.mergeTimer > 0) p.mergeTimer--;
         if (p.virusCooldown > 0) p.virusCooldown--;
     }
+
+    // Só prevê deslocamento; divisão, fusão, massa e colisões continuam no host.
+    if (predictionOnly) return;
 
     // ── Separate overlapping own pieces ──
     for (let i = 0; i < playerPieces.length; i++) {
@@ -569,7 +574,7 @@ function updatePlayerPieces() {
 
 }
 function update() {
-    if(friendAgar?.role==='guest'){friendAgar.localCamera();return;}
+    if(friendAgar?.role==='guest'){friendAgar.predict();friendAgar.localCamera();return;}
     updatePlayerPieces();
     if(friendAgar)friendAgar.remoteUpdate();
     // ── Update ejected food ──
@@ -861,7 +866,13 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
   try{fn();}finally{net.pieces=playerPieces;net.remoteCooldown=ejectCDTimer;net.remoteSplitCooldown=splitCDTimer;playerPieces=own.pieces;friendMouse=own.mouse;wKeyHeld=own.w;ejectCDTimer=own.eject;splitCDTimer=own.split;net.applying=false;}
  };
  net.localCamera=updatePlayerCamera;
- net.remoteUpdate=()=>remoteContext(()=>{if(net.split){splitPlayer();net.split=false;}updatePlayerPieces();});
+ net.remoteUpdate=()=>remoteContext(()=>{if(net.split){splitPlayer();net.split=false;}updatePlayerPieces();net.ack=net.inputSeq||0;});
+ let inputSeq=0,history=[];
+ net.predict=()=>{
+  const before=playerPieces.map(p=>({x:p.x,y:p.y}));updatePlayerPieces(true);
+  history.push({seq:++inputSeq,at:performance.now(),delta:playerPieces.map((p,i)=>({x:p.x-before[i].x,y:p.y-before[i].y}))});
+  history=history.filter(h=>performance.now()-h.at<=300).slice(-60);
+ };
  net.eaten=p=>{
   const owner=playerPieces.includes(p)?playerPieces:net.pieces;const i=owner.indexOf(p);if(i<0)return;
   owner.splice(i,1);
@@ -881,20 +892,33 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
  const receive=packet=>{
   if(closed||packet.room!==room)return;const body=packet.body;if(!body||typeof body!=='object')return;
   if(role==='host'&&packet.kind==='input'){
-   if(body.type==='frame'&&Number.isFinite(body.x)&&Number.isFinite(body.y)){net.remoteInput={x:clamp(body.x,0,WORLD_W),y:clamp(body.y,0,WORLD_H),w:body.w===true};net.lastInput=performance.now();}
+   if(body.type==='frame'&&Number.isFinite(body.x)&&Number.isFinite(body.y)){net.remoteInput={x:clamp(body.x,0,WORLD_W),y:clamp(body.y,0,WORLD_H),w:body.w===true};net.lastInput=performance.now();if(Number.isSafeInteger(body.seq)&&body.seq>0)net.inputSeq=body.seq;}
    if(body.type==='split')net.split=true;
   }else if(role==='guest'&&packet.kind==='state'&&body.type==='frame'){
-   if(!validList(body.own,MAX_PIECES)||!body.own.length||!validList(body.other,MAX_PIECES)||!validList(body.bots,150)||!validList(body.food,600)||!validList(body.viruses,40)||!validList(body.spikes,20))return;
-   playerPieces=body.own.map(v=>unpack(v,PlayerPiece.prototype));net.pieces=body.other.map(v=>unpack(v,PlayerPiece.prototype));bots=body.bots.map(v=>unpack(v,Cell.prototype));food=body.food.map(v=>unpack(v,Food.prototype));viruses=body.viruses.map(v=>unpack(v,Virus.prototype));redSpikes=body.spikes.map(v=>unpack(v,RedSpike.prototype));net.lastState=performance.now();
+   if(!validList(body.own,MAX_PIECES)||!body.own.length||!validList(body.other,MAX_PIECES)||!validList(body.bots,150)||(body.food!==undefined&&!validList(body.food,600))||!validList(body.viruses,40)||!validList(body.spikes,20))return;
+   const predicted=playerPieces;
+   playerPieces=body.own.map(v=>unpack(v,PlayerPiece.prototype));
+   history=history.filter(h=>Number.isSafeInteger(body.ack)&&h.seq>body.ack&&performance.now()-h.at<=300&&h.delta.length===playerPieces.length);
+   for(let i=0;i<playerPieces.length;i++){
+    const p=playerPieces[i],old=predicted[i];
+    if(predicted.length!==playerPieces.length||!old||Math.hypot(old.x-p.x,old.y-p.y)>180){history=[];continue;}
+    for(const h of history){p.x+=h.delta[i].x;p.y+=h.delta[i].y;}
+    if(Math.hypot(old.x-p.x,old.y-p.y)<30){p.x=p.x*.35+old.x*.65;p.y=p.y*.35+old.y*.65;}
+    p.x=clamp(p.x,p.r,WORLD_W-p.r);p.y=clamp(p.y,p.r,WORLD_H-p.r);
+   }
+   net.pieces=body.other.map(v=>unpack(v,PlayerPiece.prototype));bots=body.bots.map(v=>unpack(v,Cell.prototype));if(body.food!==undefined)food=body.food.map(v=>unpack(v,Food.prototype));viruses=body.viruses.map(v=>unpack(v,Virus.prototype));redSpikes=body.spikes.map(v=>unpack(v,RedSpike.prototype));net.lastState=performance.now();
   }
  };
+ let foodTick=0;
  const timer=setInterval(()=>{
   if(closed)return;
   if(role==='host'){
    const center=net.pieces[0];
-   send('state',{type:'frame',own:net.pieces.map(pack),other:playerPieces.map(pack),bots:bots.map(pack),food:food.filter(f=>Math.hypot(f.x-center.x,f.y-center.y)<1800).sort((a,b)=>dist2(a,center)-dist2(b,center)).slice(0,600).map(pack),viruses:viruses.map(pack),spikes:redSpikes.map(pack)});
-  }else {const target=mouseWorld();send('input',{type:'frame',x:target.x,y:target.y,w:wKeyHeld});}
- },75);
+   // Motion at 30 Hz; food is not resent in every movement snapshot.
+   const foodState=foodTick++%5===0?food.filter(f=>Math.hypot(f.x-center.x,f.y-center.y)<1800).sort((a,b)=>dist2(a,center)-dist2(b,center)).slice(0,600).map(pack):undefined;
+   send('state',{type:'frame',ack:net.ack||0,own:net.pieces.map(pack),other:playerPieces.map(pack),bots:bots.map(pack),food:foodState,viruses:viruses.map(pack),spikes:redSpikes.map(pack)});
+  }else {const target=mouseWorld();send('input',{type:'frame',seq:inputSeq,x:target.x,y:target.y,w:wKeyHeld});}
+ },33);
  window.__jarvisFriendDebug={get entities(){return {own:playerPieces,remote:net.pieces,bots,viruses};},get own(){return playerPieces.map(pack);},get remote(){return net.pieces.map(pack);},get food(){return food.map(pack);},get lastState(){return net.lastState;}};
  return {receive,close(){closed=true;clearInterval(timer);gameRunning=false;cancelAnimationFrame(animId);friendAgar=null;}};
 }};
