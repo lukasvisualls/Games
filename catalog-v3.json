@@ -2,16 +2,16 @@
   "version": 3,
   "games": {
     "battle-royale": {
-      "version": "1.2.0",
+      "version": "1.2.1",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/games-amigos-2026-10-21/battle-royale.zip",
-      "sha256": "dbb4aed9cc5ea289b8809a4638bea17dbea78588410429736d079627ae329298",
-      "size": 200391,
+      "url": "https://github.com/lukasvisualls/Games/releases/download/games-latencia-2026-10-22/battle-royale.zip",
+      "sha256": "507993efba18afd7f59ba8503ae6efffda15b22641ea54ec87aa88b6ed6096a1",
+      "size": 200984,
       "multiplayer": "none",
       "friendMultiplayer": {
         "protocol": 1,
-        "minJarvis": "2.1.149",
+        "minJarvis": "2.1.160",
         "players": 2
       }
     },
@@ -33,16 +33,16 @@
       "size": 17611
     },
     "agario": {
-      "version": "1.2.0",
+      "version": "1.2.1",
       "kind": "web",
       "entry": "index.html",
-      "url": "https://github.com/lukasvisualls/Games/releases/download/games-amigos-2026-10-21/agario.zip",
-      "sha256": "e20a4e6589e681f07523a9828eeba0b5adc733bb90a59dcdaeaca93b0486ac6e",
-      "size": 16293,
+      "url": "https://github.com/lukasvisualls/Games/releases/download/games-latencia-2026-10-22/agario.zip",
+      "sha256": "9fd09b9c48101616bd659be1ddfa7c1f2593855a19610f18c9c417378484783c",
+      "size": 16859,
       "multiplayer": "none",
       "friendMultiplayer": {
         "protocol": 1,
-        "minJarvis": "2.1.149",
+        "minJarvis": "2.1.160",
         "players": 2
       }
     },

@@ -26,11 +26,13 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
   if(i[0]==='h'&&HEAL_TYPES.some(h=>h.id===i[1])&&Number.isInteger(i[2])&&i[2]>=0&&i[2]<=3)return {...makeHeal(i[1]),usesLeft:i[2]};
   return null;
  };
- const entityOut=(p,yaw)=>({p:p.pos.toArray(),yaw,hp:p.hp,shield:p.shield,alive:p.alive,phase:p.phase,crouching:p.crouching,slots:p.slots?.map(itemOut),slot:p.activeSlot??-1});
+ const entityOut=(p,yaw)=>({p:p.pos.toArray(),vy:p.vy||0,onGround:p.onGround===true,yaw,hp:p.hp,shield:p.shield,alive:p.alive,phase:p.phase,crouching:p.crouching,slots:p.slots?.map(itemOut),slot:p.activeSlot??-1});
  const entityIn=(p,v)=>{
   if(!v||!finite(v.p,3)||!Number.isFinite(v.yaw)||!Number.isFinite(v.hp)||!Number.isFinite(v.shield)||!['bus','air','freefall','glider','playing'].includes(v.phase))return false;
   p.pos.fromArray(v.p);p.hp=clamp(v.hp,0,100);p.shield=clamp(v.shield,0,100);p.alive=v.alive===true;p.phase=v.phase;p.crouching=v.crouching===true;p.mesh.visible=p.shadow.visible=p.alive;
+  if(Number.isFinite(v.vy))p.vy=clamp(v.vy,-50,20);p.onGround=v.onGround===true;
   if(p instanceof Player){
+   if(p.glider&&p.phase!=='glider'){p.mesh.remove(p.glider);p.glider=null;}
    if(Array.isArray(v.slots)&&v.slots.length===5){const before=JSON.stringify(p.slots.map(itemOut));p.slots=v.slots.map(itemIn);p.activeSlot=Number.isInteger(v.slot)?clamp(v.slot,-1,4):-1;if(before!==JSON.stringify(v.slots)||p.netSlot!==p.activeSlot){p.refreshHeld();p.netSlot=p.activeSlot;}}
    const yaw=game.camYaw,pitch=game.camPitch;if(p!==local){game.camYaw=v.yaw;game.camPitch=0;}p.syncMesh(false);game.camYaw=yaw;game.camPitch=pitch;
   }else{p.yaw=v.yaw;p.syncMesh(false,.05);}
@@ -45,14 +47,23 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
   try{
    if(game.bus.done&&remote.phase==='bus')remote.startFreefall();
    updateCamera();remote.update(dt);updateInteraction();
+   net.ack=net.inputSeq||0;
   }finally{
    net.materials=game.materials;
    for(const key of ['jump','interact','build','slot','pickaxe'])delete action[key];
    game.player=saved.player;game.camYaw=saved.yaw;game.camPitch=saved.pitch;game.materials=saved.materials;Object.assign(input,saved.input);invOpen=saved.inv;game.interactTarget=saved.target;camera.position.copy(saved.camPos);camera.quaternion.copy(saved.camQuat);
   }
  };
+ let inputSeq=0,history=[];
  net.guestStep=(dt,t)=>{
-  local.syncMesh(false,dt);
+  // Respond on this render frame, without waiting for the round trip.
+  const before=local.pos.clone(),phase=local.phase;
+  if(input.jumpQueued||input.interactQueued||input.pickaxeQueued||input.buildQueued||input.slotQueued>=0)send('input',{type:'action',jump:input.jumpQueued,interact:input.interactQueued,build:input.buildQueued,slot:input.slotQueued,pickaxe:input.pickaxeQueued});
+  game.frameColliders=game.worldColliders.concat(game.build.structures.filter(s=>s.kind==='wall').map(s=>s.aabb));
+  local.update(Math.min(dt,.05),true);
+  history.push({seq:++inputSeq,at:performance.now(),delta:local.pos.clone().sub(before),phase});
+  history=history.filter(h=>performance.now()-h.at<=300).slice(-60);
+  input.jumpQueued=input.interactQueued=input.pickaxeQueued=false;input.buildQueued=null;input.slotQueued=-1;
   for(const c of game.chests)c.update(dt,t);
   for(const p of game.pickups)p.update(dt,t);
   game.zone.updateMeshes();updateParticles(dt);updateCamera();
@@ -101,10 +112,19 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
    const prior=net.input||{};
    net.input={w:body.w===true,a:body.a===true,s:body.s===true,d:body.d===true,fire:body.fire===true,crouch:body.crouch===true,inv:body.inv===true,jump:prior.jump||body.jump===true,interact:prior.interact||body.interact===true,pickaxe:prior.pickaxe||body.pickaxe===true,build:['wall','ramp','floor','pyramid'].includes(body.build)?body.build:prior.build,slot:Number.isInteger(body.slot)&&body.slot>=0&&body.slot<5?body.slot:prior.slot};
    net.yaw=body.yaw;net.pitch=clamp(body.pitch,-1.15,1.3);net.lastInput=performance.now();
+   if(Number.isSafeInteger(body.seq)&&body.seq>0)net.inputSeq=body.seq;
   }else if(role==='guest'&&packet.kind==='state'){
    if(body.type==='world'){worldIn(body);return;}
    if(body.type!=='frame'||!Array.isArray(body.bots)||body.bots.length!==game.bots.length||!finite(body.bus,4)||!body.zone||!finite(body.materials,3)||!Array.isArray(body.shots)||body.shots.length>512||!body.shots.every(v=>Array.isArray(v)&&v.length===4&&finite(v.slice(0,3),3)&&Number.isInteger(v[3])&&v[3]>=0&&v[3]<=0xffffff))return;
+   const predicted=local.pos.clone(),phase=local.phase;
    if(!entityIn(local,body.own)||!entityIn(remote,body.other))return;
+   history=history.filter(h=>Number.isSafeInteger(body.ack)&&h.seq>body.ack&&performance.now()-h.at<=300&&h.phase===local.phase);
+   // Reapply only unacknowledged motion, bounded to 300 ms. Teleports/death win.
+   if(local.alive&&local.phase===phase&&local.phase!=='bus'&&predicted.distanceTo(local.pos)<12){
+    for(const h of history)local.pos.add(h.delta);
+    if(predicted.distanceTo(local.pos)<2)local.pos.lerp(predicted,.65);
+    local.syncMesh(false);
+   }else history=[];
    body.bots.forEach((v,i)=>entityIn(game.bots[i],v));
    while(game.projectiles.length>body.shots.length){const p=game.projectiles.pop();game.scene.remove(p.mesh);}
    body.shots.forEach((v,i)=>{let p=game.projectiles[i];if(!p){p={mesh:new THREE.Mesh(_projGeo,projMat(v[3]))};game.projectiles.push(p);game.scene.add(p.mesh);}p.mesh.position.set(...v.slice(0,3));p.mesh.material=projMat(v[3]);});
@@ -125,13 +145,11 @@ window.JarvisFriendMultiplayer={connect({role,room,name,remoteName,send}){
     if(signature!==worldSignature){worldSignature=signature;send('state',state);}else net.revision--;
    }
    const z=game.zone;
-   send('state',{type:'frame',own:entityOut(remote,net.yaw),other:entityOut(local,game.camYaw),bots:game.bots.map(b=>entityOut(b,b.yaw)),shots:game.projectiles.slice(0,512).map(p=>[...p.mesh.position.toArray(),p.mesh.material.color.getHex()]),zone:{x:z.x,z:z.z,radius:z.radius,targetX:z.targetX,targetZ:z.targetZ,targetRadius:z.targetRadius,timer:z.timer,phaseIndex:z.phaseIndex,state:z.state},bus:[...game.bus.group.position.toArray(),game.bus.group.rotation.y],busDone:game.bus.done,materials:Object.values(net.materials),victory:game.victory,placement:game.playerPlacement,revision:net.revision});
+   send('state',{type:'frame',ack:net.ack||0,own:entityOut(remote,net.yaw),other:entityOut(local,game.camYaw),bots:game.bots.map(b=>entityOut(b,b.yaw)),shots:game.projectiles.slice(0,512).map(p=>[...p.mesh.position.toArray(),p.mesh.material.color.getHex()]),zone:{x:z.x,z:z.z,radius:z.radius,targetX:z.targetX,targetZ:z.targetZ,targetRadius:z.targetRadius,timer:z.timer,phaseIndex:z.phaseIndex,state:z.state},bus:[...game.bus.group.position.toArray(),game.bus.group.rotation.y],busDone:game.bus.done,materials:Object.values(net.materials),victory:game.victory,placement:game.playerPlacement,revision:net.revision});
   }else{
-   send('input',{type:'frame',yaw:game.camYaw,pitch:game.camPitch,w:!!input.keys.KeyW,a:!!input.keys.KeyA,s:!!input.keys.KeyS,d:!!input.keys.KeyD,crouch:!!input.keys[binds.crouch],fire:input.mouseDown,inv:invOpen});
-   if(input.jumpQueued||input.interactQueued||input.pickaxeQueued||input.buildQueued||input.slotQueued>=0)send('input',{type:'action',jump:input.jumpQueued,interact:input.interactQueued,build:input.buildQueued,slot:input.slotQueued,pickaxe:input.pickaxeQueued});
-   input.jumpQueued=input.interactQueued=input.pickaxeQueued=false;input.buildQueued=null;input.slotQueued=-1;
+   send('input',{type:'frame',seq:inputSeq,yaw:game.camYaw,pitch:game.camPitch,w:!!input.keys.KeyW,a:!!input.keys.KeyA,s:!!input.keys.KeyS,d:!!input.keys.KeyD,crouch:!!input.keys[binds.crouch],fire:input.mouseDown,inv:invOpen});
   }
- },50);
+ },33);
  if(role==='guest')send('input',{type:'hello'});
  window.__jarvisFriendDebug={get own(){return entityOut(local,game.camYaw);},get remote(){return entityOut(remote,net.yaw);},get world(){return {harvest:game.harvestables.length,chests:game.chests.length,loot:game.pickups.length,structures:game.build.structures.length};},get lastState(){return net.lastState;}};
  return {receive,close(){if(closed)return;closed=true;clearInterval(timer);document.exitPointerLock();if(game){disposeScene(game.scene);game=null;}friendBattle=null;}};
